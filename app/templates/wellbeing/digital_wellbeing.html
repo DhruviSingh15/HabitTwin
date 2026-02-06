@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Digital Wellbeing</h1>
+        <a href="{{ url_for('wellbeing.upload_screen_time') }}" 
+           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            <i class="fas fa-upload mr-2"></i> Upload Screen Time
+        </a>
+    </div>
+    
+    {% if screen_time_logs %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Summary -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Screen Time Summary</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-indigo-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-600 mb-1">Daily Average</p>
+                            <p class="text-2xl font-bold text-indigo-600">
+                                {{ (daily_average // 60)|int }}h {{ (daily_average % 60)|int }}m
+                            </p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-600 mb-1">Total (Last 7 Days)</p>
+                            <p class="text-2xl font-bold text-purple-600">
+                                {{ (total_screen_time // 60)|int }}h {{ (total_screen_time % 60)|int }}m
+                            </p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-600 mb-1">Most Productive Day</p>
+                            <p class="text-2xl font-bold text-green-600">
+                                {{ most_productive_day }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Screen Time Chart -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Daily Screen Time</h3>
+                        <div id="screenTimeChart" class="w-full h-64"></div>
+                    </div>
+                    
+                    <!-- App Usage Chart -->
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">App Usage Breakdown</h3>
+                        <div id="appUsageChart" class="w-full h-64"></div>
+                    </div>
+                </div>
+                
+                <!-- Digital Detox Challenges -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">Digital Detox Challenges</h2>
+                        <a href="{{ url_for('wellbeing.new_detox_challenge') }}" class="text-indigo-600 hover:text-indigo-800">Start New Challenge</a>
+                    </div>
+                    
+                    {% if detox_challenges %}
+                        <div class="space-y-4">
+                            {% for challenge in detox_challenges %}
+                                <div class="border rounded-lg p-4 hover:shadow-md transition">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="font-bold">{{ challenge.name }}</h3>
+                                            <p class="text-sm text-gray-600">{{ challenge.description }}</p>
+                                        </div>
+                                        <span class="px-2 py-1 text-xs rounded-full 
+                                            {% if challenge.status == 'active' %}
+                                                bg-green-100 text-green-800
+                                            {% elif challenge.status == 'completed' %}
+                                                bg-blue-100 text-blue-800
+                                            {% else %}
+                                                bg-gray-100 text-gray-800
+                                            {% endif %}">
+                                            {{ challenge.status|capitalize }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex justify-between items-center text-sm">
+                                        <span>
+                                            <i class="fas fa-calendar-alt text-indigo-500 mr-1"></i>
+                                            {{ challenge.start_date.strftime('%b %d') }} - {{ challenge.end_date.strftime('%b %d, %Y') }}
+                                        </span>
+                                        <a href="{{ url_for('wellbeing.view_challenge', challenge_id=challenge.id) }}" 
+                                           class="text-indigo-600 hover:text-indigo-800">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="bg-gray-50 rounded-lg p-6 text-center">
+                            <p class="text-gray-600 mb-4">You haven't started any digital detox challenges yet.</p>
+                            <a href="{{ url_for('wellbeing.new_detox_challenge') }}" 
+                               class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                                Start Your First Challenge
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Right Column - Recent Uploads & Top Apps -->
+            <div>
+                <!-- Top Apps -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Top Apps & Websites</h2>
+                    
+                    {% if top_apps %}
+                        <div class="space-y-4">
+                            {% for app, minutes in top_apps %}
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </div>
+                                        <span class="font-medium">{{ app }}</span>
+                                    </div>
+                                    <span class="text-gray-600">
+                                        {{ (minutes // 60)|int }}h {{ (minutes % 60)|int }}m
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-600 text-center">No app usage data available.</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Recent Uploads -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Uploads</h2>
+                    
+                    {% if recent_uploads %}
+                        <div class="space-y-3">
+                            {% for upload in recent_uploads %}
+                                <div class="border-b pb-3">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                            <i class="fas fa-file-excel"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">{{ upload.filename }}</p>
+                                            <p class="text-sm text-gray-600">{{ upload.upload_date.strftime('%B %d, %Y') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-600 text-center">No uploads yet.</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Tips -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Digital Wellbeing Tips</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-blue-800">Set Screen Time Limits</h3>
+                            <p class="text-sm text-blue-600">Use your device's built-in screen time features to set daily limits for apps.</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-purple-800">Take Regular Breaks</h3>
+                            <p class="text-sm text-purple-600">Follow the 20-20-20 rule: Every 20 minutes, look at something 20 feet away for 20 seconds.</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-green-800">Create Phone-Free Zones</h3>
+                            <p class="text-sm text-green-600">Designate areas in your home where devices are not allowed, like the dining table or bedroom.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-4xl">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Screen Time Data Yet</h2>
+            <p class="text-gray-600 mb-6">Upload your screen time data to track your digital wellbeing and get personalized insights.</p>
+            <a href="{{ url_for('wellbeing.upload_screen_time') }}" 
+               class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Upload Screen Time Data
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if screen_time_logs %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Daily Screen Time Chart
+        const dates = {{ dates|tojson }};
+        const screenTimes = {{ screen_times|tojson }};
+        
+        const screenTimeData = [{
+            x: dates,
+            y: screenTimes,
+            type: 'bar',
+            marker: {
+                color: 'rgba(79, 70, 229, 0.8)'
+            }
+        }];
+        
+        const screenTimeLayout = {
+            margin: { t: 10, l: 40, r: 10, b: 40 },
+            yaxis: {
+                title: 'Minutes'
+            },
+            xaxis: {
+                tickangle: -45
+            }
+        };
+        
+        Plotly.newPlot('screenTimeChart', screenTimeData, screenTimeLayout);
+        
+        // App Usage Chart
+        const apps = {{ app_names|tojson }};
+        const appTimes = {{ app_times|tojson }};
+        
+        const appUsageData = [{
+            labels: apps,
+            values: appTimes,
+            type: 'pie',
+            marker: {
+                colors: [
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(236, 72, 153, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ]
+            }
+        }];
+        
+        const appUsageLayout = {
+            margin: { t: 10, l: 10, r: 10, b: 10 },
+            showlegend: true,
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            }
+        };
+        
+        Plotly.newPlot('appUsageChart', appUsageData, appUsageLayout);
+    });
+</script>
+{% endif %}
+{% endblock %}

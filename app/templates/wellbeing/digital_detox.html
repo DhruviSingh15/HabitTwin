@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Digital Detox Challenges</h1>
+        <a href="{{ url_for('wellbeing.join_challenge') }}" 
+           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            <i class="fas fa-plus mr-2"></i> Join New Challenge
+        </a>
+    </div>
+    
+    <!-- Active Challenges -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-indigo-600 text-white py-4 px-6">
+            <h2 class="text-xl font-bold">Your Active Challenges</h2>
+            <p class="text-indigo-200">Challenges you're currently participating in</p>
+        </div>
+        
+        <div class="p-6">
+            {% if active_challenges %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for challenge in active_challenges %}
+                        <div class="border rounded-lg overflow-hidden shadow-sm">
+                            <div class="bg-indigo-50 p-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-indigo-800">{{ challenge.name }}</h3>
+                                    <span class="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-800">
+                                        Day {{ challenge.current_day }}/{{ challenge.total_days }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-indigo-600 mt-1">{{ challenge.description }}</p>
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="mb-3">
+                                    <div class="flex justify-between mb-1 text-sm">
+                                        <span>Progress</span>
+                                        <span>{{ challenge.progress_percentage }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ challenge.progress_percentage }}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between text-sm mb-4">
+                                    <div>
+                                        <p class="text-gray-500">Start Date</p>
+                                        <p class="font-medium">{{ challenge.start_date.strftime('%b %d, %Y') }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">End Date</p>
+                                        <p class="font-medium">{{ challenge.end_date.strftime('%b %d, %Y') }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <a href="{{ url_for('wellbeing.challenge_details', challenge_id=challenge.id) }}" 
+                                       class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                        View Details
+                                    </a>
+                                    <a href="{{ url_for('wellbeing.log_challenge', challenge_id=challenge.id) }}" 
+                                       class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700">
+                                        Log Today
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-gray-50 rounded-lg p-6 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-2xl">
+                        <i class="fas fa-hourglass-start"></i>
+                    </div>
+                    <p class="text-gray-600 mb-4">You don't have any active digital detox challenges.</p>
+                    <a href="{{ url_for('wellbeing.join_challenge') }}" 
+                       class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        Start Your First Challenge
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Challenge Categories -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- App-Specific Challenges -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-blue-600 text-white py-4 px-6">
+                <h2 class="text-xl font-bold">App Specific</h2>
+                <p class="text-blue-200">Reduce usage of specific apps</p>
+            </div>
+            <div class="p-4">
+                <div class="space-y-3">
+                    {% for challenge in app_challenges %}
+                        <div class="border rounded-lg p-3 hover:bg-gray-50">
+                            <h3 class="font-bold text-gray-800">{{ challenge.name }}</h3>
+                            <p class="text-sm text-gray-600 mb-2">{{ challenge.description }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    {{ challenge.duration }} days
+                                </span>
+                                <a href="{{ url_for('wellbeing.join_challenge', challenge_id=challenge.id) }}" 
+                                   class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    Join
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Time-Based Challenges -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-green-600 text-white py-4 px-6">
+                <h2 class="text-xl font-bold">Time Based</h2>
+                <p class="text-green-200">Limit screen time during specific periods</p>
+            </div>
+            <div class="p-4">
+                <div class="space-y-3">
+                    {% for challenge in time_challenges %}
+                        <div class="border rounded-lg p-3 hover:bg-gray-50">
+                            <h3 class="font-bold text-gray-800">{{ challenge.name }}</h3>
+                            <p class="text-sm text-gray-600 mb-2">{{ challenge.description }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                    {{ challenge.duration }} days
+                                </span>
+                                <a href="{{ url_for('wellbeing.join_challenge', challenge_id=challenge.id) }}" 
+                                   class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                    Join
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Complete Detox Challenges -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-purple-600 text-white py-4 px-6">
+                <h2 class="text-xl font-bold">Complete Detox</h2>
+                <p class="text-purple-200">Full digital breaks for mental clarity</p>
+            </div>
+            <div class="p-4">
+                <div class="space-y-3">
+                    {% for challenge in complete_challenges %}
+                        <div class="border rounded-lg p-3 hover:bg-gray-50">
+                            <h3 class="font-bold text-gray-800">{{ challenge.name }}</h3>
+                            <p class="text-sm text-gray-600 mb-2">{{ challenge.description }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                    {{ challenge.duration }} days
+                                </span>
+                                <a href="{{ url_for('wellbeing.join_challenge', challenge_id=challenge.id) }}" 
+                                   class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                                    Join
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Completed Challenges -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-gray-800 text-white py-4 px-6">
+            <h2 class="text-xl font-bold">Completed Challenges</h2>
+            <p class="text-gray-400">Your digital detox achievements</p>
+        </div>
+        
+        <div class="p-6">
+            {% if completed_challenges %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Challenge</th>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Completed On</th>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Success Rate</th>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for challenge in completed_challenges %}
+                                <tr>
+                                    <td class="px-4 py-3 border-b border-gray-200">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full 
+                                                {% if challenge.category == 'app' %}
+                                                    bg-blue-100 text-blue-600
+                                                {% elif challenge.category == 'time' %}
+                                                    bg-green-100 text-green-600
+                                                {% else %}
+                                                    bg-purple-100 text-purple-600
+                                                {% endif %} 
+                                                flex items-center justify-center mr-3">
+                                                <i class="fas 
+                                                    {% if challenge.category == 'app' %}
+                                                        fa-mobile-alt
+                                                    {% elif challenge.category == 'time' %}
+                                                        fa-clock
+                                                    {% else %}
+                                                        fa-power-off
+                                                    {% endif %}"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-800">{{ challenge.name }}</p>
+                                                <p class="text-xs text-gray-500">{{ challenge.start_date.strftime('%b %d') }} - {{ challenge.end_date.strftime('%b %d, %Y') }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 border-b border-gray-200 text-sm">
+                                        {{ challenge.duration }} days
+                                    </td>
+                                    <td class="px-4 py-3 border-b border-gray-200 text-sm">
+                                        {{ challenge.end_date.strftime('%B %d, %Y') }}
+                                    </td>
+                                    <td class="px-4 py-3 border-b border-gray-200">
+                                        <div class="flex items-center">
+                                            <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="
+                                                    {% if challenge.success_rate >= 80 %}
+                                                        bg-green-600
+                                                    {% elif challenge.success_rate >= 50 %}
+                                                        bg-yellow-600
+                                                    {% else %}
+                                                        bg-red-600
+                                                    {% endif %} 
+                                                    h-2 rounded-full" style="width: {{ challenge.success_rate }}%"></div>
+                                            </div>
+                                            <span class="text-sm font-medium">{{ challenge.success_rate }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 border-b border-gray-200 text-sm">
+                                        <a href="{{ url_for('wellbeing.challenge_details', challenge_id=challenge.id) }}" 
+                                           class="text-indigo-600 hover:text-indigo-800">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="bg-gray-50 rounded-lg p-6 text-center">
+                    <p class="text-gray-600">You haven't completed any challenges yet.</p>
+                    <p class="text-sm text-gray-500 mt-2">Complete your active challenges to see them here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Tips and Benefits -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 text-white py-4 px-6">
+            <h2 class="text-xl font-bold">Digital Detox Benefits</h2>
+            <p class="text-indigo-200">Why taking breaks from screens matters</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl mb-3">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="font-bold text-indigo-800 mb-2">Improved Mental Focus</h3>
+                    <p class="text-sm text-gray-600">
+                        Taking breaks from screens helps your brain reset, improving concentration and reducing mental fatigue.
+                    </p>
+                </div>
+                
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl mb-3">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <h3 class="font-bold text-indigo-800 mb-2">Better Sleep Quality</h3>
+                    <p class="text-sm text-gray-600">
+                        Reducing screen time before bed helps your body produce melatonin naturally, leading to deeper, more restful sleep.
+                    </p>
+                </div>
+                
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="font-bold text-indigo-800 mb-2">Stronger Relationships</h3>
+                    <p class="text-sm text-gray-600">
+                        Being present without digital distractions leads to more meaningful connections and conversations with others.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            <strong>Pro Tip:</strong> Start small with 30-minute screen-free periods each day, then gradually increase the duration as it becomes easier.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

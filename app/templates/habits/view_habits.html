@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4">
+    <!-- Header with stats summary -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg mb-8 overflow-hidden">
+        <div class="p-6 text-white">
+            <h1 class="text-3xl font-bold mb-2">Your Habits Journey</h1>
+            <p class="text-indigo-100 mb-6">Track, manage and build consistency with your daily habits</p>
+            
+            {% if habits %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                {% set total_habits = habits|length %}
+                {% set active_habits = habits|selectattr('active', 'eq', True)|list|length %}
+                {% set total_completion = namespace(value=0) %}
+                {% set longest_streak = namespace(value=0) %}
+                
+                {% for habit in habits %}
+                    {% set total_completion.value = total_completion.value + habit.completion_rate() %}
+                    {% if habit.longest_streak() > longest_streak.value %}
+                        {% set longest_streak.value = habit.longest_streak() %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% set avg_completion = (total_habits > 0) and (total_completion.value / total_habits) or 0 %}
+                
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm text-indigo-100">Total Habits</div>
+                    <div class="text-2xl font-bold flex items-center">
+                        {{ total_habits }}
+                        <i class="fas fa-list-check ml-2 text-indigo-200 text-xl"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm text-indigo-100">Active Habits</div>
+                    <div class="text-2xl font-bold flex items-center">
+                        {{ active_habits }}
+                        <i class="fas fa-bolt ml-2 text-indigo-200 text-xl"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm text-indigo-100">Avg. Completion</div>
+                    <div class="text-2xl font-bold flex items-center">
+                        {{ avg_completion|round|int }}%
+                        <i class="fas fa-chart-line ml-2 text-indigo-200 text-xl"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm text-indigo-100">Best Streak</div>
+                    <div class="text-2xl font-bold flex items-center">
+                        {{ longest_streak.value }} days
+                        <i class="fas fa-fire ml-2 text-indigo-200 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Action buttons and filters -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 md:items-center">
+            <!-- Search input -->
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input id="habit-search" type="text" class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="Search habits...">
+                <div id="count-badge" class="hidden absolute right-3 top-1/2 transform -translate-y-1/2 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    <span id="filter-count">0</span> found
+                </div>
+            </div>
+            
+            <!-- Category filter -->
+            <div class="relative w-full md:w-64">
+                <select id="category-filter" class="block w-full py-2.5 px-3 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="all">All Categories</option>
+                    <option value="health">Health</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="productivity">Productivity</option>
+                    <option value="learning">Learning</option>
+                    <option value="mindfulness">Mindfulness</option>
+                    <option value="other">Other</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 mt-4 md:mt-0">
+            <a href="{{ url_for('habits.habit_calendar') }}" class="bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-200 flex items-center">
+                <i class="fas fa-calendar-alt mr-2"></i> Calendar View
+            </a>
+            <a href="{{ url_for('habits.new_habit') }}" 
+               class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-200 flex items-center shadow-md">
+                <i class="fas fa-plus mr-2"></i> New Habit
+            </a>
+        </div>
+    </div>
+    
+    {% if habits %}
+        <div id="empty-filter-state" class="hidden bg-white rounded-xl shadow-md p-8 text-center max-w-md mx-auto border border-gray-100 mb-6">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-3xl">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No habits found</h3>
+            <p class="text-gray-600 mb-4">Try adjusting your search or filter criteria to find what you're looking for.</p>
+            <button id="reset-filters" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                <i class="fas fa-redo-alt mr-2"></i> Reset Filters
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="habits-container">
+            {% for habit in habits %}
+                {% set category_icon = 'dumbbell' %}
+                {% set category_color = 'indigo' %}
+                {% if habit.category == 'Health' %}
+                    {% set category_icon = 'heart-pulse' %}
+                    {% set category_color = 'red' %}
+                {% elif habit.category == 'Fitness' %}
+                    {% set category_icon = 'dumbbell' %}
+                    {% set category_color = 'blue' %}
+                {% elif habit.category == 'Learning' %}
+                    {% set category_icon = 'book' %}
+                    {% set category_color = 'yellow' %}
+                {% elif habit.category == 'Productivity' %}
+                    {% set category_icon = 'briefcase' %}
+                    {% set category_color = 'green' %}
+                {% elif habit.category == 'Mindfulness' %}
+                    {% set category_icon = 'brain' %}
+                    {% set category_color = 'purple' %}
+                {% elif habit.category == 'Social' %}
+                    {% set category_icon = 'users' %}
+                    {% set category_color = 'pink' %}
+                {% endif %}
+                
+                {% set streak = habit.current_streak() %}
+                {% set streak_class = 'bg-gray-100' %}
+                {% if streak >= 30 %}
+                    {% set streak_class = 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white' %}
+                {% elif streak >= 14 %}
+                    {% set streak_class = 'bg-gradient-to-r from-blue-400 to-indigo-500 text-white' %}
+                {% elif streak >= 7 %}
+                    {% set streak_class = 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' %}
+                {% elif streak >= 3 %}
+                    {% set streak_class = 'bg-gradient-to-r from-indigo-300 to-purple-400 text-white' %}
+                {% endif %}
+                
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 relative group" data-category="{{ habit.category }}">
+                    <!-- Category indicator at top -->
+                    <div class="h-2 bg-{{ category_color }}-500 w-full"></div>
+                    
+                    <!-- Status badge -->
+                    {% if habit.active %}
+                        <div class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</div>
+                    {% else %}
+                        <div class="absolute top-3 right-3 bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Paused</div>
+                    {% endif %}
+                    
+                    <div class="p-6">
+                        <!-- Header with title and actions -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-full bg-{{ category_color }}-100 flex items-center justify-center text-{{ category_color }}-500 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fas fa-{{ category_icon }} text-lg"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800 group-hover:text-{{ category_color }}-600 transition-colors">{{ habit.name }}</h2>
+                                    <div class="text-sm text-gray-500 flex items-center gap-1">
+                                        <i class="fas fa-repeat text-xs"></i> {{ habit.frequency }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                                <a href="{{ url_for('habits.edit_habit', habit_id=habit.id) }}" 
+                                   class="text-gray-400 hover:text-{{ category_color }}-600 transition-colors p-1.5 rounded-full hover:bg-gray-100" title="Edit Habit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('habits.delete_habit', habit_id=habit.id) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-full hover:bg-gray-100" 
+                                            onclick="return confirm('Are you sure you want to delete this habit?')" title="Delete Habit">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        {% if habit.description %}
+                            <p class="text-gray-600 mb-4 line-clamp-2">{{ habit.description }}</p>
+                        {% endif %}
+                        
+                        <!-- Streak counter -->
+                        <div class="flex items-center mb-4">
+                            <div class="{{ streak_class }} text-sm font-semibold px-3 py-1 rounded-full flex items-center">
+                                <i class="fas fa-fire mr-1.5"></i> {{ streak }} day streak
+                            </div>
+                            {% if habit.reminder_time %}
+                                <div class="ml-auto text-sm text-gray-500 flex items-center">
+                                    <i class="fas fa-bell mr-1.5"></i> {{ habit.reminder_time.strftime('%I:%M %p') }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Stats row -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 transition-colors duration-200">
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="text-xs font-medium text-gray-500">Completion Rate</div>
+                                    <div class="flex items-center text-xs">
+                                        <i class="fas fa-chart-line text-{{ category_color }}-500 mr-1"></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-end mb-2">
+                                    <span class="text-xl font-bold text-gray-800">{{ habit.completion_rate() }}%</span>
+                                    <div class="ml-auto flex items-center text-xs font-medium">
+                                        {% if habit.completion_rate() > 50 %}
+                                            <i class="fas fa-arrow-up text-green-500 mr-1"></i>
+                                            <span class="text-green-500">Good</span>
+                                        {% elif habit.completion_rate() > 30 %}
+                                            <i class="fas fa-minus text-yellow-500 mr-1"></i>
+                                            <span class="text-yellow-500">Fair</span>
+                                        {% else %}
+                                            <i class="fas fa-arrow-down text-red-500 mr-1"></i>
+                                            <span class="text-red-500">Low</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    {% set completion_width = habit.completion_rate() %}
+                                    <div class="bg-{{ category_color }}-500 h-2 rounded-full transition-all duration-500" {% if completion_width > 0 %}style="width: {{ completion_width }}%"{% else %}style="width: 0%"{% endif %}></div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 transition-colors duration-200">
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="text-xs font-medium text-gray-500">Longest Streak</div>
+                                    <div class="flex items-center text-xs">
+                                        <i class="fas fa-trophy text-{{ category_color }}-500 mr-1"></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-end mb-2">
+                                    <span class="text-xl font-bold text-gray-800">{{ habit.longest_streak() }}</span>
+                                    <span class="text-xs text-gray-500 ml-1 mb-0.5">days</span>
+                                    <div class="ml-auto flex items-center text-xs font-medium">
+                                        {% if habit.longest_streak() >= 21 %}
+                                            <span class="text-green-500">Excellent</span>
+                                        {% elif habit.longest_streak() >= 14 %}
+                                            <span class="text-blue-500">Great</span>
+                                        {% elif habit.longest_streak() >= 7 %}
+                                            <span class="text-yellow-500">Good</span>
+                                        {% else %}
+                                            <span class="text-gray-500">Building</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    {% set streak_percent = (habit.longest_streak() / 30) * 100 if habit.longest_streak() < 30 else 100 %}
+                                    <div class="bg-{{ category_color }}-500 h-2 rounded-full transition-all duration-500" {% if streak_percent > 0 %}style="width: {{ streak_percent }}%"{% else %}style="width: 0%"{% endif %}></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Last 7 days calendar -->
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs font-medium text-gray-500">Last 7 Days</div>
+                                <div class="text-xs text-{{ category_color }}-500">{{ habit.current_streak() }} day streak</div>
+                            </div>
+                            <div class="flex justify-between bg-gray-50 p-3 rounded-lg">
+                                {% for i in range(6, -1, -1) %}
+                                    {% set date = today - timedelta(days=i) %}
+                                    {% set log = habit.get_log_for_date(date) %}
+                                    <div class="text-center">
+                                        <div class="text-xs font-medium text-gray-500 mb-1">{{ date.strftime('%a') }}</div>
+                                        {% set day_class = "w-9 h-9 rounded-full flex items-center justify-center shadow-sm " %}
+                                        {% if date.date() == today.date() %}
+                                            {% set day_class = day_class ~ "ring-2 ring-" ~ category_color ~ "-400 ring-offset-2 " %}
+                                        {% endif %}
+                                        {% if log and log.completed %}
+                                            {% set day_class = day_class ~ "bg-" ~ category_color ~ "-500 text-white" %}
+                                        {% elif log %}
+                                            {% set day_class = day_class ~ "bg-gray-400 text-white" %}
+                                        {% else %}
+                                            {% set day_class = day_class ~ "bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors" %}
+                                        {% endif %}
+                                        <div class="{{ day_class }}">
+                                            {% if log and log.completed %}
+                                                <i class="fas fa-check text-xs"></i>
+                                            {% elif log %}
+                                                <i class="fas fa-times text-xs"></i>
+                                            {% else %}
+                                                <span class="text-xs font-medium">{{ date.day }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Action buttons -->
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('habits.log_habit', habit_id=habit.id) }}" 
+                               class="bg-{{ category_color }}-600 hover:bg-{{ category_color }}-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ category_color }}-500 focus:ring-opacity-50 flex-grow text-center transition-colors shadow-sm flex items-center justify-center">
+                                <i class="fas fa-check-circle mr-1.5"></i> Log Today
+                            </a>
+                            <a href="{{ url_for('habits.view_habit_details', habit_id=habit.id) }}" 
+                               class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium py-2.5 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors flex items-center justify-center">
+                                <i class="fas fa-chart-line mr-1.5"></i> Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-xl shadow-md p-8 text-center max-w-md mx-auto border border-gray-100">
+            <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-500 text-4xl shadow-inner">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-3">No Habits Yet</h2>
+            <p class="text-gray-600 mb-8 max-w-sm mx-auto">Start tracking your habits to build consistency and achieve your goals. Creating habits is the first step toward positive change.</p>
+            
+            <div class="flex flex-col gap-4 max-w-xs mx-auto">
+                <a href="{{ url_for('habits.new_habit') }}" 
+                   class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-200 shadow-md flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i> Create Your First Habit
+                </a>
+                
+                <a href="#" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors">
+                    Learn more about building effective habits
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('habit-search');
+        const categoryFilter = document.getElementById('category-filter');
+        const habitsContainer = document.getElementById('habits-container');
+        const habitCards = habitsContainer.querySelectorAll('.bg-white.rounded-xl');
+        const resetButton = document.getElementById('reset-filters');
+        const emptyState = document.getElementById('empty-filter-state');
+        
+        // Add transition effects to cards
+        habitCards.forEach(card => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        });
+        
+        // Search functionality
+        searchInput.addEventListener('input', filterHabits);
+        
+        // Category filter functionality
+        categoryFilter.addEventListener('change', filterHabits);
+        
+        // Reset filters
+        resetButton.addEventListener('click', function() {
+            searchInput.value = '';
+            categoryFilter.value = 'all';
+            filterHabits();
+            
+            // Add a subtle pulse animation to all cards
+            habitCards.forEach(card => {
+                card.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    card.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+        
+        function filterHabits() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            let visibleCount = 0;
+            
+            habitCards.forEach(card => {
+                const habitName = card.querySelector('h2').textContent.toLowerCase();
+                const habitDescription = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+                const habitCategory = card.getAttribute('data-category');
+                
+                // Check if the habit matches both search term and category filter
+                const matchesSearch = habitName.includes(searchTerm) || habitDescription.includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' || habitCategory === selectedCategory;
+                
+                // Show or hide the habit card
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = '';
+                    // Add a subtle animation for appearing cards
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                    }, 50);
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Show empty state if no habits match
+            if (visibleCount === 0) {
+                emptyState.style.display = 'block';
+                habitsContainer.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                habitsContainer.style.display = 'grid';
+            }
+            
+            // Update filter counts
+            const filterCount = document.getElementById('filter-count');
+            if (filterCount) {
+                filterCount.textContent = visibleCount;
+                
+                // Show the count badge if filtering is active
+                const countBadge = document.getElementById('count-badge');
+                if (countBadge) {
+                    if (searchTerm || selectedCategory !== 'all') {
+                        countBadge.classList.remove('hidden');
+                    } else {
+                        countBadge.classList.add('hidden');
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

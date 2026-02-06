@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Hero Section with Animation -->
+    <div class="relative text-white py-20 px-6" style="background-image: url('static/twin1.jpg'); background-size: cover; background-position: center;">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-cyan-900/80"></div>
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center relative z-10">
+            <div class="md:w-1/2 text-center md:text-left mb-10 md:mb-0">
+                <h1 class="text-5xl font-bold mb-4 leading-tight">Meet Your <span class="text-cyan-200">Twin</span> for Self-Improvement</h1>
+                <p class="text-xl mb-8 text-blue-100">HabitTwin uses AI to create Twin: Your AI Digital Twin that learns your patterns and helps you build better habits and digital wellbeing.</p>
+                <div class="flex flex-col sm:flex-row justify-center md:justify-start space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="{{ url_for('auth.register') }}" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-100 transition transform hover:-translate-y-1 shadow-lg">
+                        <i class="fas fa-rocket mr-2"></i> Get Started
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white hover:text-blue-600 transition transform hover:-translate-y-1">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                    </a>
+                </div>
+            </div>
+            <div class="md:w-1/2 relative">
+                <div class="relative z-10 transform hover:scale-105 transition duration-500">
+                    <img src="static/twin1.jpg" alt="Twin: Your AI Digital Twin" class="w-full" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400/6366F1/FFFFFF?text=Twin:+Your+AI+Digital+Twin'">
+                </div>
+                <!-- Decorative elements -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500 rounded-full opacity-30 blur-xl"></div>
+                <div class="absolute bottom-0 left-0 w-40 h-40 bg-blue-500 rounded-full opacity-30 blur-xl"></div>
+            </div>
+        </div>
+        
+        <!-- Wave separator -->
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden">
+            <svg class="w-full h-16 text-white" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="currentColor"></path>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="py-16 px-6 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Powered by Your Digital Twin</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Your digital twin learns from your habits and behaviors to provide personalized guidance and insights.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center text-indigo-600 text-2xl mb-6">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-indigo-800">Habit Tracking</h3>
+                    <p class="text-gray-600">Create custom habits, track daily progress, and build streaks with personalized reminders and insights.</p>
+                    <a href="{{ url_for('main.features') }}#habit-tracking" class="inline-block mt-4 text-indigo-600 hover:text-indigo-800 font-medium">
+                        Learn more <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-white p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center text-purple-600 text-2xl mb-6">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-purple-800">Digital Wellbeing</h3>
+                    <p class="text-gray-600">Take control of your screen time with detailed analytics, digital detox challenges, and app usage insights.</p>
+                    <a href="{{ url_for('main.features') }}#digital-wellbeing" class="inline-block mt-4 text-purple-600 hover:text-purple-800 font-medium">
+                        Learn more <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-white p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 text-2xl mb-6">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-blue-800">AI Insights</h3>
+                    <p class="text-gray-600">Your digital twin analyzes your patterns to provide personalized recommendations and habit correlations.</p>
+                    <a href="{{ url_for('main.features') }}#ai-insights" class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium">
+                        Learn more <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Second row of features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+                <div class="bg-gradient-to-br from-green-50 to-white p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center text-green-600 text-2xl mb-6">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-green-800">Gamification</h3>
+                    <p class="text-gray-600">Stay motivated with achievements, challenges, and friendly competition with your digital twin.</p>
+                    <a href="{{ url_for('main.features') }}#gamification" class="inline-block mt-4 text-green-600 hover:text-green-800 font-medium">
+                        Learn more <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="bg-gradient-to-br from-amber-50 to-white p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center text-amber-600 text-2xl mb-6">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-amber-800">Twin</h3>
+                    <p class="text-gray-600">Chat with your AI assistant for personalized habit advice, summaries, and motivation.</p>
+                    <a href="{{ url_for('main.features') }}" class="inline-block mt-4 text-amber-600 hover:text-amber-800 font-medium">
+                        Learn more <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="bg-gradient-to-br from-pink-50 to-white p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center text-pink-600 text-2xl mb-6">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-pink-800">Analytics</h3>
+                    <p class="text-gray-600">Visualize your progress with interactive charts, calendars, and detailed reports.</p>
+                    <a href="{{ url_for('main.features') }}" class="inline-block mt-4 text-pink-600 hover:text-pink-800 font-medium">
+                        Learn more <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How It Works Section -->
+    <div class="py-16 px-6 bg-gradient-to-b from-white to-indigo-50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">How Your Digital Twin Works</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">A simple process to create your digital twin and start improving your habits</p>
+            </div>
+            
+            <div class="relative">
+                <!-- Timeline line -->
+                <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 bg-indigo-200 transform -translate-x-1/2"></div>
+                
+                <!-- Step 1 -->
+                <div class="relative mb-16 md:mb-24">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12 text-center md:text-right">
+                            <h3 class="text-2xl font-bold text-indigo-800 mb-3">Create Your Account</h3>
+                            <p class="text-gray-600">Sign up and set up your profile with your interests, goals, and preferences to personalize your experience.</p>
+                        </div>
+                        
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center justify-center">
+                            <div class="bg-indigo-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg z-10">1</div>
+                        </div>
+                        
+                        <div class="md:w-1/2 md:pl-12 text-center md:text-left">
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+                                <img src="static/createaccount.png" alt="Create Account" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x300/6366F1/FFFFFF?text=Create+Account'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="relative mb-16 md:mb-24">
+                    <div class="flex flex-col md:flex-row-reverse items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0 md:pl-12 text-center md:text-left">
+                            <h3 class="text-2xl font-bold text-indigo-800 mb-3">Track Your Habits</h3>
+                            <p class="text-gray-600">Create custom habits you want to build or break, set frequency goals, and track your daily progress to build consistency.</p>
+                        </div>
+                        
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center justify-center">
+                            <div class="bg-indigo-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg z-10">2</div>
+                        </div>
+                        
+                        <div class="md:w-1/2 md:pr-12 text-center md:text-right">
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+                                <img src="static/habit.png" alt="Habit Tracking" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x300/6366F1/FFFFFF?text=Habit+Tracking'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="relative mb-16 md:mb-24">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12 text-center md:text-right">
+                            <h3 class="text-2xl font-bold text-indigo-800 mb-3">Monitor Digital Wellbeing</h3>
+                            <p class="text-gray-600">Upload your screen time data to analyze app usage patterns and participate in digital detox challenges.</p>
+                        </div>
+                        
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center justify-center">
+                            <div class="bg-indigo-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg z-10">3</div>
+                        </div>
+                        
+                        <div class="md:w-1/2 md:pl-12 text-center md:text-left">
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+                                <img src="static/digital.png" alt="Digital Wellbeing" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x300/6366F1/FFFFFF?text=Digital+Wellbeing'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4 -->
+                <div class="relative">
+                    <div class="flex flex-col md:flex-row-reverse items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0 md:pl-12 text-center md:text-left">
+                            <h3 class="text-2xl font-bold text-indigo-800 mb-3">Get AI-Powered Insights</h3>
+                            <p class="text-gray-600">Your digital twin analyzes your data to provide personalized insights, recommendations, and helps you stay accountable.</p>
+                        </div>
+                        
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center justify-center">
+                            <div class="bg-indigo-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg z-10">4</div>
+                        </div>
+                        
+                        <div class="md:w-1/2 md:pr-12 text-center md:text-right">
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+                                <img src="static/aiinsights.png" alt="AI Insights" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x300/6366F1/FFFFFF?text=AI+Insights'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Testimonials Section -->
+    <div class="py-16 px-6 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">What Our Users Say</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Join thousands of users who are transforming their habits with HabitTwin</p>
+            </div> 
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-xl shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="text-yellow-400 flex">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic mb-6">"HabitTwin has completely changed how I manage my screen time. The insights from my digital twin helped me cut my social media usage in half!"</p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-indigo-200 rounded-full mr-4 flex items-center justify-center text-indigo-600 font-bold">JD</div>
+                        <div>
+                            <h4 class="font-bold">Jane Doe</h4>
+                            <p class="text-gray-500 text-sm">Digital Marketer</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-white p-8 rounded-xl shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="text-yellow-400 flex">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic mb-6">"The habit tracking features are amazing! I've been able to maintain a 60-day meditation streak thanks to the personalized reminders and insights."</p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-purple-200 rounded-full mr-4 flex items-center justify-center text-purple-600 font-bold">JS</div>
+                        <div>
+                            <h4 class="font-bold">John Smith</h4>
+                            <p class="text-gray-500 text-sm">Software Engineer</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-white p-8 rounded-xl shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="text-yellow-400 flex">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic mb-6">"I love how my digital twin gives me personalized recommendations based on my habits. It's like having a coach who really understands my patterns."</p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-blue-200 rounded-full mr-4 flex items-center justify-center text-blue-600 font-bold">AJ</div>
+                        <div>
+                            <h4 class="font-bold">Alex Johnson</h4>
+                            <p class="text-gray-500 text-sm">Student</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="relative py-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full opacity-10"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full opacity-10"></div>
+        
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <h2 class="text-4xl font-bold mb-6">Ready to Meet Your Digital Twin?</h2>
+            <p class="text-xl mb-10 text-indigo-100">Join HabitTwin today and start your journey to better habits and improved digital wellbeing.</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="{{ url_for('auth.register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold hover:bg-indigo-100 transition transform hover:-translate-y-1 shadow-lg">
+                    <i class="fas fa-user-plus mr-2"></i> Create Your Account
+                </a>
+                <a href="{{ url_for('main.features') }}" class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white hover:text-indigo-600 transition transform hover:-translate-y-1">
+                    <i class="fas fa-info-circle mr-2"></i> Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

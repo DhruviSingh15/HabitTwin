@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Insights Header -->
+        <div class="bg-gradient-to-r from-teal-600 to-blue-600 rounded-t-xl text-white p-8">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">AI Insights Dashboard</h1>
+                    <p class="text-teal-100">Personalized insights and recommendations for your habits</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="{{ url_for('habits.view_habits') }}" class="bg-white text-teal-600 px-4 py-2 rounded-lg font-medium hover:bg-teal-50 transition transform hover:-translate-y-1 shadow-md">
+                        <i class="fas fa-tasks mr-2"></i>View My Habits
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="bg-white rounded-b-xl shadow-lg p-8">
+            <!-- Weekly Report -->
+            <div class="mb-10">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Weekly Report</h2>
+                
+                {% if weekly_report %}
+                    <!-- Main Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <!-- Habit Completion -->
+                        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-blue-100 overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-white">
+                                <p class="font-medium">Habit Completion</p>
+                            </div>
+                            <div class="p-4">
+                                {% if weekly_report.habits %}
+                                    {% set total_completion = 0 %}
+                                    {% set habit_count = weekly_report.habits|length %}
+                                    {% for habit in weekly_report.habits %}
+                                        {% set total_completion = total_completion + habit.completion_rate|default(0) %}
+                                    {% endfor %}
+                                    {% if habit_count > 0 %}
+                                        {% set completion_percentage = (total_completion / habit_count)|round|int %}
+                                    {% else %}
+                                        {% set completion_percentage = 0 %}
+                                    {% endif %}
+                                {% else %}
+                                    {% set completion_percentage = 0 %}
+                                {% endif %}
+                                
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-3xl font-bold text-gray-800">{{ completion_percentage }}%</h3>
+                                    <div class="bg-blue-100 text-blue-600 p-2 rounded-full">
+                                        <i class="fas fa-check-circle text-xl"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress Bar -->
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                                    {% set completion_width = completion_percentage|string + '%' %}
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ completion_width }};"></div>
+                                </div>
+                                
+                                <!-- Trend Indicator -->
+                                <div class="text-xs text-gray-500 flex items-center">
+                                    <i class="fas fa-arrow-up text-green-500 mr-1"></i>
+                                    <span>+5% from last week</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Longest Streak -->
+                        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-teal-100 overflow-hidden">
+                            <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-4 py-2 text-white">
+                                <p class="font-medium">Longest Streak</p>
+                            </div>
+                            <div class="p-4">
+                                {% if weekly_report.habits %}
+                                    {% set max_streak = 0 %}
+                                    {% for habit in weekly_report.habits %}
+                                        {% if habit.streak|default(0) > max_streak %}
+                                            {% set max_streak = habit.streak|default(0) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% set max_streak = 0 %}
+                                {% endif %}
+                                
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-3xl font-bold text-gray-800">{{ max_streak }}</h3>
+                                    <div class="bg-teal-100 text-teal-600 p-2 rounded-full">
+                                        <i class="fas fa-fire text-xl"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-1 mb-2">
+                                    {% for i in range(min(max_streak, 7)) %}
+                                        <div class="flex-1 h-1.5 bg-teal-500 rounded-full"></div>
+                                    {% endfor %}
+                                    {% for i in range(7 - min(max_streak, 7)) %}
+                                        <div class="flex-1 h-1.5 bg-gray-200 rounded-full"></div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <p class="text-xs text-gray-500">{{ max_streak }} consecutive days</p>
+                            </div>
+                        </div>
+
+                        <!-- Screen Time -->
+                        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-green-100 overflow-hidden">
+                            <div class="bg-gradient-to-r from-green-500 to-green-600 px-4 py-2 text-white">
+                                <p class="font-medium">Screen Time</p>
+                            </div>
+                            <div class="p-4">
+                                {% if weekly_report.screen_time and weekly_report.screen_time.daily_average is defined %}
+                                    {% set screen_hours = (weekly_report.screen_time.daily_average / 60)|default(0)|round(1) %}
+                                {% else %}
+                                    {% set screen_hours = 0 %}
+                                {% endif %}
+                                
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-3xl font-bold text-gray-800">{{ screen_hours }}</h3>
+                                    <div class="bg-green-100 text-green-600 p-2 rounded-full">
+                                        <i class="fas fa-mobile-alt text-xl"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress Bar (inverse - less is better) -->
+                                {% set screen_percentage = min((screen_hours / 8) * 100, 100)|round|int %}
+                                {% set screen_width = screen_percentage|string + '%' %}
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                                    <div class="{% if screen_percentage < 50 %}bg-green-500{% elif screen_percentage < 75 %}bg-yellow-500{% else %}bg-red-500{% endif %} h-2.5 rounded-full" style="width: {{ screen_width }};"></div>
+                                </div>
+                                
+                                <p class="text-xs text-gray-500">{{ screen_hours }} hours daily average</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Productivity Score -->
+                        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-purple-100 overflow-hidden">
+                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2 text-white">
+                                <p class="font-medium">Productivity Score</p>
+                            </div>
+                            <div class="p-4">
+                                {% set productivity = 75 %}
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-3xl font-bold text-gray-800">{{ productivity }}</h3>
+                                    <div class="bg-purple-100 text-purple-600 p-2 rounded-full">
+                                        <i class="fas fa-bolt text-xl"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Circular Progress -->
+                                <div class="flex justify-center mb-2">
+                                    <div class="relative w-12 h-12">
+                                        <svg class="w-full h-full" viewBox="0 0 36 36">
+                                            <circle cx="18" cy="18" r="16" fill="none" stroke="#e2e8f0" stroke-width="2"></circle>
+                                            <circle cx="18" cy="18" r="16" fill="none" stroke="#9f7aea" stroke-width="2" stroke-dasharray="100" stroke-dashoffset="{{ 100 - productivity }}" transform="rotate(-90 18 18)"></circle>
+                                        </svg>
+                                        <div class="absolute inset-0 flex items-center justify-center text-xs font-medium text-purple-600">{{ productivity }}</div>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-xs text-gray-500 text-center">Great progress!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Weekly Summary</h3>
+                        <div class="prose max-w-none text-gray-700">
+                            {% if weekly_report.summary %}
+                                <p>{{ weekly_report.summary }}</p>
+                            {% else %}
+                                <p>No summary data available for this week.</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if weekly_report.achievements %}
+                            <div class="mt-6">
+                                <h4 class="font-semibold text-gray-700 mb-3">Achievements This Week</h4>
+                                <ul class="space-y-2">
+                                    {% for achievement in weekly_report.achievements %}
+                                        <li class="flex items-start">
+                                            <div class="text-yellow-500 mr-2"><i class="fas fa-trophy"></i></div>
+                                            <span class="text-gray-700">{{ achievement }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                        <div class="text-gray-400 mb-4">
+                            <i class="fas fa-chart-line text-6xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">No Weekly Report Available</h3>
+                        <p class="text-gray-500 mb-4">Continue tracking your habits to generate a personalized weekly report.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Two Column Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Habit Suggestions -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Recommended Habits</h2>
+                    
+                    {% if habit_suggestions %}
+                        <div class="space-y-4">
+                            {% for suggestion in habit_suggestions %}
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition">
+                                    <div class="flex items-start">
+                                        <div class="bg-teal-100 text-teal-600 p-3 rounded-lg mr-4">
+                                            <i class="fas fa-lightbulb"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-800">{{ suggestion.name }}</h3>
+                                            <p class="text-gray-600 text-sm mt-1">{{ suggestion.description }}</p>
+                                            <div class="mt-3">
+                                                <a href="{{ url_for('habits.new_habit') }}" class="text-teal-600 text-sm font-medium hover:text-teal-700">
+                                                    <i class="fas fa-plus mr-1"></i> Add This Habit
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                            <div class="text-gray-400 mb-4">
+                                <i class="fas fa-lightbulb text-5xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">No Habit Suggestions</h3>
+                            <p class="text-gray-500">Continue using the app to receive personalized habit suggestions.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- At Risk Habits -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Habits at Risk</h2>
+                    
+                    {% if at_risk_habits %}
+                        <div class="space-y-4">
+                            {% for item in at_risk_habits %}
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition">
+                                    <div class="flex items-start">
+                                        <div class="bg-red-100 text-red-600 p-3 rounded-lg mr-4">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-800">{{ item.habit.name }}</h3>
+                                            <p class="text-gray-600 text-sm mt-1">{{ item.reason }}</p>
+                                            <div class="mt-3">
+                                                <a href="{{ url_for('habits.habit', habit_id=item.habit.id) }}" class="text-blue-600 text-sm font-medium hover:text-blue-700">
+                                                    <i class="fas fa-external-link-alt mr-1"></i> View Habit
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                            <div class="text-gray-400 mb-4">
+                                <i class="fas fa-check-double text-5xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">No Habits at Risk</h3>
+                            <p class="text-gray-500">Great job! All your habits are on track.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- AI Insights Tips -->
+            <div class="mt-10 bg-gradient-to-br from-blue-50 to-teal-50 p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-bold text-teal-800 mb-4">How to Use AI Insights</h3>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <div class="text-teal-500 mr-2 mt-1"><i class="fas fa-info-circle"></i></div>
+                        <span class="text-gray-700">Check your weekly report to see your progress and achievements</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-teal-500 mr-2 mt-1"><i class="fas fa-info-circle"></i></div>
+                        <span class="text-gray-700">Pay attention to habits at risk and take action to get back on track</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-teal-500 mr-2 mt-1"><i class="fas fa-info-circle"></i></div>
+                        <span class="text-gray-700">Try our recommended habits to build a balanced routine</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-teal-500 mr-2 mt-1"><i class="fas fa-info-circle"></i></div>
+                        <span class="text-gray-700">The more you use HabitTwin, the more personalized your insights become</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

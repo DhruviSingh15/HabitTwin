@@ -1,0 +1,575 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Screen Time Analytics</h1>
+        <p class="text-gray-600">Insights from your uploaded screen time data</p>
+    </div>
+    
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl mr-4">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Daily Average</p>
+                    <p class="text-2xl font-bold text-gray-800">
+                        {% if daily_average.hours > 0 %}
+                            {{ daily_average.hours }}h {{ daily_average.minutes }}m
+                        {% else %}
+                            {{ daily_average.minutes }}m
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="mt-2">
+                {% if daily_average.trend > 0 %}
+                    <p class="text-sm text-red-600"><i class="fas fa-arrow-up mr-1"></i> {{ daily_average.trend }}% vs. last month</p>
+                {% elif daily_average.trend < 0 %}
+                    <p class="text-sm text-green-600"><i class="fas fa-arrow-down mr-1"></i> {{ daily_average.trend|abs }}% vs. last month</p>
+                {% else %}
+                    <p class="text-sm text-gray-600"><i class="fas fa-minus mr-1"></i> No change vs. last month</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl mr-4">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Most Active Time</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ most_active_time }}</p>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">{{ most_active_time_description }}</p>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl mr-4">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Best Day</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ best_day.day }}</p>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">
+                    {% if best_day.hours > 0 %}
+                        {{ best_day.hours }}h {{ best_day.minutes }}m
+                    {% else %}
+                        {{ best_day.minutes }}m
+                    {% endif %}
+                    screen time
+                </p>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xl mr-4">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Highest Usage App</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ top_app.name }}</p>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">
+                    {% if top_app.hours > 0 %}
+                        {{ top_app.hours }}h {{ top_app.minutes }}m
+                    {% else %}
+                        {{ top_app.minutes }}m
+                    {% endif %}
+                    daily average
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Period Selector -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-wrap items-center justify-between">
+            <div class="flex space-x-2 mb-2 sm:mb-0">
+                <button id="week-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">Week</button>
+                <button id="month-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Month</button>
+                <button id="year-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Year</button>
+            </div>
+            <div class="flex items-center">
+                <button id="prev-period" class="p-2 text-gray-600 hover:text-indigo-600">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span id="period-display" class="mx-4 font-medium">{{ current_period }}</span>
+                <button id="next-period" class="p-2 text-gray-600 hover:text-indigo-600">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Daily Screen Time Chart -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Daily Screen Time</h2>
+            </div>
+            <div class="p-4">
+                <div id="dailyScreenTimeChart" class="h-80"></div>
+            </div>
+        </div>
+        
+        <!-- App Usage Chart -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">App Usage Breakdown</h2>
+            </div>
+            <div class="p-4">
+                <div id="appUsageChart" class="h-80"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Hourly Usage Pattern -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Hourly Usage Pattern</h2>
+            </div>
+            <div class="p-4">
+                <div id="hourlyUsageChart" class="h-80"></div>
+            </div>
+        </div>
+        
+        <!-- Day of Week Comparison -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-3 px-6">
+                <h2 class="text-xl font-bold">Day of Week Comparison</h2>
+            </div>
+            <div class="p-4">
+                <div id="dayOfWeekChart" class="h-80"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- App Details Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-indigo-600 text-white py-3 px-6 flex justify-between items-center">
+            <h2 class="text-xl font-bold">App Details</h2>
+            <div class="relative">
+                <input type="text" id="app-search" placeholder="Search apps..." class="px-3 py-1 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+        <div class="p-4">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">App</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Average</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trend</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peak Usage Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="app-table-body">
+                        {% for app in app_details %}
+                            <tr class="app-row">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-{{ app.color }}-100 flex items-center justify-center text-{{ app.color }}-600 mr-3">
+                                            <i class="fas {{ app.icon }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-900">{{ app.name }}</div>
+                                            <div class="text-sm text-gray-500">{{ app.category }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if app.hours > 0 %}
+                                        {{ app.hours }}h {{ app.minutes }}m
+                                    {% else %}
+                                        {{ app.minutes }}m
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if app.trend > 0 %}
+                                        <span class="text-red-600"><i class="fas fa-arrow-up mr-1"></i> {{ app.trend }}%</span>
+                                    {% elif app.trend < 0 %}
+                                        <span class="text-green-600"><i class="fas fa-arrow-down mr-1"></i> {{ app.trend|abs }}%</span>
+                                    {% else %}
+                                        <span class="text-gray-600"><i class="fas fa-minus mr-1"></i> 0%</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+                                    {{ app.peak_time }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ url_for('wellbeing.create_challenge', app=app.name) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                        <i class="fas fa-trophy mr-1"></i> Create Challenge
+                                    </a>
+                                    <a href="{{ url_for('wellbeing.app_details', app=app.name) }}" class="text-indigo-600 hover:text-indigo-900">
+                                        <i class="fas fa-chart-line mr-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Insights Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-indigo-600 text-white py-3 px-6">
+            <h2 class="text-xl font-bold">Insights & Recommendations</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Insights -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Key Insights</h3>
+                    <ul class="space-y-4">
+                        {% for insight in insights %}
+                            <li class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-{{ insight.color }}-100 flex items-center justify-center text-{{ insight.color }}-600">
+                                        <i class="fas {{ insight.icon }}"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-800">{{ insight.title }}</p>
+                                    <p class="text-sm text-gray-600">{{ insight.description }}</p>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Recommendations -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Recommendations</h3>
+                    <ul class="space-y-4">
+                        {% for recommendation in recommendations %}
+                            <li class="bg-indigo-50 rounded-lg p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                            <i class="fas {{ recommendation.icon }}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="font-medium text-indigo-800">{{ recommendation.title }}</p>
+                                        <p class="text-sm text-indigo-700 mt-1">{{ recommendation.description }}</p>
+                                        {% if recommendation.action_url %}
+                                            <a href="{{ recommendation.action_url }}" class="inline-block mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                                {{ recommendation.action_text }} <i class="fas fa-arrow-right ml-1"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload History -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 text-white py-3 px-6 flex justify-between items-center">
+            <h2 class="text-xl font-bold">Upload History</h2>
+            <a href="{{ url_for('wellbeing.upload_screen_time') }}" class="text-white hover:text-indigo-200">
+                <i class="fas fa-upload mr-1"></i> Upload New Data
+            </a>
+        </div>
+        <div class="p-4">
+            {% if upload_history %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Uploaded</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for upload in upload_history %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        {{ upload.upload_date.strftime('%b %d, %Y') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        {{ upload.filename }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        {{ upload.start_date.strftime('%b %d') }} - {{ upload.end_date.strftime('%b %d, %Y') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700">
+                                        {{ upload.description }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="{{ url_for('wellbeing.download_upload', upload_id=upload.id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <a href="{{ url_for('wellbeing.delete_upload', upload_id=upload.id) }}" class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="bg-gray-50 rounded-lg p-6 text-center">
+                    <p class="text-gray-600 mb-2">No screen time data has been uploaded yet.</p>
+                    <a href="{{ url_for('wellbeing.upload_screen_time') }}" class="inline-block text-indigo-600 hover:text-indigo-800">
+                        Upload your first screen time data
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Time period selector
+        const weekBtn = document.getElementById('week-btn');
+        const monthBtn = document.getElementById('month-btn');
+        const yearBtn = document.getElementById('year-btn');
+        
+        weekBtn.addEventListener('click', function() {
+            setActiveButton(weekBtn);
+            // Update charts for weekly data
+            updateCharts('week');
+        });
+        
+        monthBtn.addEventListener('click', function() {
+            setActiveButton(monthBtn);
+            // Update charts for monthly data
+            updateCharts('month');
+        });
+        
+        yearBtn.addEventListener('click', function() {
+            setActiveButton(yearBtn);
+            // Update charts for yearly data
+            updateCharts('year');
+        });
+        
+        function setActiveButton(activeBtn) {
+            [weekBtn, monthBtn, yearBtn].forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            
+            activeBtn.classList.remove('bg-gray-200', 'text-gray-700');
+            activeBtn.classList.add('bg-indigo-600', 'text-white');
+        }
+        
+        // Period navigation
+        const prevPeriodBtn = document.getElementById('prev-period');
+        const nextPeriodBtn = document.getElementById('next-period');
+        const periodDisplay = document.getElementById('period-display');
+        
+        prevPeriodBtn.addEventListener('click', function() {
+            // Navigate to previous period
+            navigatePeriod('prev');
+        });
+        
+        nextPeriodBtn.addEventListener('click', function() {
+            // Navigate to next period
+            navigatePeriod('next');
+        });
+        
+        function navigatePeriod(direction) {
+            // Logic to navigate periods would go here
+            // This would update the periodDisplay text and refresh charts
+            
+            // For demo purposes:
+            let currentPeriod = periodDisplay.textContent;
+            
+            // Update period display based on active time period and direction
+            // This is placeholder logic - would need to be updated with actual date manipulation
+            if (weekBtn.classList.contains('bg-indigo-600')) {
+                // Weekly logic
+                periodDisplay.textContent = currentPeriod; // Would update based on actual week calculation
+            } else if (monthBtn.classList.contains('bg-indigo-600')) {
+                // Monthly logic
+                periodDisplay.textContent = currentPeriod; // Would update based on actual month calculation
+            } else {
+                // Yearly logic
+                periodDisplay.textContent = currentPeriod; // Would update based on actual year calculation
+            }
+            
+            // Update charts for the new period
+            updateCharts(getActivePeriodType());
+        }
+        
+        function getActivePeriodType() {
+            if (weekBtn.classList.contains('bg-indigo-600')) return 'week';
+            if (monthBtn.classList.contains('bg-indigo-600')) return 'month';
+            return 'year';
+        }
+        
+        // App search functionality
+        const appSearch = document.getElementById('app-search');
+        const appRows = document.querySelectorAll('.app-row');
+        
+        appSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            appRows.forEach(row => {
+                const appName = row.querySelector('.font-medium').textContent.toLowerCase();
+                const appCategory = row.querySelector('.text-sm.text-gray-500').textContent.toLowerCase();
+                
+                if (appName.includes(searchTerm) || appCategory.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Initialize charts
+        initializeCharts();
+        
+        function initializeCharts() {
+            // Daily Screen Time Chart
+            const dailyScreenTimeData = {
+                x: {{ daily_screen_time.dates|tojson }},
+                y: {{ daily_screen_time.values|tojson }},
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {
+                    color: 'rgba(79, 70, 229, 1)',
+                    size: 8
+                },
+                line: {
+                    color: 'rgba(79, 70, 229, 0.8)',
+                    width: 3
+                },
+                name: 'Screen Time'
+            };
+            
+            const dailyScreenTimeLayout = {
+                margin: { t: 10, l: 50, r: 20, b: 40 },
+                yaxis: {
+                    title: 'Hours',
+                    titlefont: { size: 12 }
+                },
+                xaxis: {
+                    tickangle: -45
+                },
+                hovermode: 'closest'
+            };
+            
+            Plotly.newPlot('dailyScreenTimeChart', [dailyScreenTimeData], dailyScreenTimeLayout);
+            
+            // App Usage Chart
+            const appUsageData = [{
+                values: {{ app_usage.values|tojson }},
+                labels: {{ app_usage.labels|tojson }},
+                type: 'pie',
+                hole: 0.4,
+                marker: {
+                    colors: {{ app_usage.colors|tojson }}
+                },
+                textinfo: 'label+percent',
+                insidetextorientation: 'radial'
+            }];
+            
+            const appUsageLayout = {
+                margin: { t: 10, l: 10, r: 10, b: 10 },
+                showlegend: true,
+                legend: {
+                    orientation: 'v',
+                    x: 1,
+                    y: 0.5
+                }
+            };
+            
+            Plotly.newPlot('appUsageChart', appUsageData, appUsageLayout);
+            
+            // Hourly Usage Pattern
+            const hourlyUsageData = [{
+                x: {{ hourly_usage.hours|tojson }},
+                y: {{ hourly_usage.values|tojson }},
+                type: 'bar',
+                marker: {
+                    color: 'rgba(79, 70, 229, 0.8)'
+                },
+                name: 'Usage'
+            }];
+            
+            const hourlyUsageLayout = {
+                margin: { t: 10, l: 50, r: 20, b: 40 },
+                yaxis: {
+                    title: 'Minutes',
+                    titlefont: { size: 12 }
+                },
+                xaxis: {
+                    title: 'Hour of Day',
+                    titlefont: { size: 12 }
+                }
+            };
+            
+            Plotly.newPlot('hourlyUsageChart', hourlyUsageData, hourlyUsageLayout);
+            
+            // Day of Week Comparison
+            const dayOfWeekData = [{
+                x: {{ day_of_week.days|tojson }},
+                y: {{ day_of_week.values|tojson }},
+                type: 'bar',
+                marker: {
+                    color: 'rgba(79, 70, 229, 0.8)'
+                },
+                name: 'Screen Time'
+            }];
+            
+            const dayOfWeekLayout = {
+                margin: { t: 10, l: 50, r: 20, b: 40 },
+                yaxis: {
+                    title: 'Hours',
+                    titlefont: { size: 12 }
+                }
+            };
+            
+            Plotly.newPlot('dayOfWeekChart', dayOfWeekData, dayOfWeekLayout);
+        }
+        
+        function updateCharts(periodType) {
+            // This function would fetch new data based on the period type and update all charts
+            // For a real implementation, this would likely involve an AJAX call to get new data
+            
+            // For demo purposes, we'll just log the period type
+            console.log(`Updating charts for period type: ${periodType}`);
+            
+            // In a real implementation, you would:
+            // 1. Make an AJAX call to get new data
+            // 2. Update each chart with the new data using Plotly.react() or Plotly.update()
+        }
+    });
+</script>
+{% endblock %}

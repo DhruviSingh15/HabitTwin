@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Calendar Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-xl text-white p-8">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Habit Calendar</h1>
+                    <p class="text-indigo-100">Track your consistency across all habits</p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <span class="bg-white bg-opacity-20 text-white text-sm px-3 py-1 rounded-full flex items-center">
+                            <i class="far fa-calendar-alt mr-1"></i> {{ selected_month }}
+                        </span>
+                        {% if today.strftime('%Y-%m') == '%d-%02d'|format(year, month) %}
+                            <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i> Current Month
+                            </span>
+                        {% endif %}
+                        <span class="bg-white bg-opacity-20 text-white text-xs px-3 py-1 rounded-full flex items-center">
+                            <i class="fas fa-tasks mr-1"></i> {{ logs|length }} Total Logs
+                        </span>
+                        <span class="bg-white bg-opacity-20 text-white text-xs px-3 py-1 rounded-full flex items-center">
+                            <i class="fas fa-list mr-1"></i> {{ habits|length }} Habits
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-4 md:mt-0 flex flex-col md:flex-row gap-2">
+                    <a href="{{ url_for('habits.view_habits') }}" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition text-center flex items-center justify-center">
+                        <i class="fas fa-arrow-left mr-1"></i> Back to Habits
+                    </a>
+                    <a href="{{ url_for('habits.habit_calendar', year=today.year, month=today.month) }}" class="bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-400 transition text-center flex items-center justify-center">
+                        <i class="fas fa-calendar-day mr-1"></i> Today
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calendar Content -->
+        <div class="bg-white rounded-b-xl shadow-lg p-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Monthly Overview</h2>
+                
+                <!-- Month Navigation -->
+                <div class="flex justify-between items-center mb-6 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <a href="{{ url_for('habits.habit_calendar', year=prev_year, month=prev_month) }}" class="text-indigo-600 hover:text-indigo-800 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-all flex items-center">
+                        <i class="fas fa-chevron-left mr-2"></i> 
+                        <span class="hidden sm:inline">Previous Month</span>
+                        <span class="sm:hidden">Prev</span>
+                    </a>
+                    <div class="flex flex-col items-center">
+                        <h3 class="text-xl font-bold text-gray-700">{{ selected_month }}</h3>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="px-1">{{ date_range|length }} days</span>
+                            <span class="px-1 border-l border-gray-300">{{ habits|length }} habits</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('habits.habit_calendar', year=next_year, month=next_month) }}" class="text-indigo-600 hover:text-indigo-800 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-all flex items-center">
+                        <span class="hidden sm:inline">Next Month</span>
+                        <span class="sm:hidden">Next</span>
+                        <i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- Calendar Grid -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 bg-gradient-to-r from-indigo-50 to-purple-50 text-left text-gray-700 border-b font-semibold sticky left-0 z-10">Habit</th>
+                                {% for day_info in date_range %}
+                                    <th class="py-3 px-2 bg-gray-50 text-center text-gray-600 border-b text-xs">
+                                        <div>{{ day_info.day }}</div>
+                                        <div>{{ day_info.weekday }}</div>
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for habit in habits %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-3 px-4 border-b sticky left-0 bg-white z-10">
+                                        <div class="flex flex-col">
+                                            <a href="{{ url_for('habits.habit', habit_id=habit.id) }}" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                                {{ habit.name }}
+                                            </a>
+                                            {% set habit_logs = logs|selectattr('habit_id', 'equalto', habit.id)|list %}
+                                            {% set completed_logs = habit_logs|selectattr('completed')|list %}
+                                            {% set completion_percentage = (completed_logs|length / habit_logs|length * 100)|round|int if habit_logs|length > 0 else 0 %}
+                                            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                                {% if completion_percentage < 30 %}
+                                                    <div class="bg-gradient-to-r from-red-400 to-red-600 h-2.5 rounded-full" {% if completion_percentage > 0 %}style="width: {{ completion_percentage }}%"{% else %}class="w-0"{% endif %}></div>
+                                                {% elif completion_percentage < 70 %}
+                                                    <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 h-2.5 rounded-full" {% if completion_percentage > 0 %}style="width: {{ completion_percentage }}%"{% else %}class="w-0"{% endif %}></div>
+                                                {% else %}
+                                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2.5 rounded-full" {% if completion_percentage > 0 %}style="width: {{ completion_percentage }}%"{% else %}class="w-0"{% endif %}></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex justify-between mt-1">
+                                                <span class="text-xs text-gray-500">{{ completed_logs|length }}/{{ habit_logs|length }}</span>
+                                                <span class="text-xs font-medium {% if completion_percentage >= 80 %}text-green-600{% elif completion_percentage >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ completion_percentage }}%</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    {% for day_info in date_range %}
+                                        {% set day_str = day_info.date_str %}
+                                        {% set log = logs|selectattr('habit_id', 'equalto', habit.id)|selectattr('date', 'equalto', day_str)|first %}
+                                        {% set is_completed = false %}
+                                        {% set is_logged = false %}
+                                        
+                                        {% if day_str in calendar_data and habit.id in calendar_data[day_str] %}
+                                            {% set is_logged = true %}
+                                            {% set is_completed = calendar_data[day_str][habit.id] %}
+                                        {% endif %}
+                                        
+                                        <td class="py-2 px-2 border-b text-center">
+                                            {% if is_logged %}
+                                                {% if is_completed %}
+                                                    <div class="w-6 h-6 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-sm hover:shadow transition-all cursor-pointer" title="Completed on {{ day_info.date.strftime('%b %d, %Y') }}">
+                                                        <i class="fas fa-check text-white text-xs"></i>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="w-6 h-6 mx-auto bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center shadow-sm hover:shadow transition-all cursor-pointer" title="Missed on {{ day_info.date.strftime('%b %d, %Y') }}">
+                                                        <i class="fas fa-times text-white text-xs"></i>
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if day_info.date < today %}
+                                                    <!-- Past day that should have been logged -->
+                                                    {% if habit.frequency == 'daily' or (habit.frequency == 'weekly' and day_info.date.weekday() == 0) %}
+                                                        <div class="w-6 h-6 mx-auto bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center shadow-sm hover:shadow transition-all cursor-pointer" title="Not logged for {{ day_info.date.strftime('%b %d, %Y') }}">
+                                                            <i class="fas fa-question text-white text-xs"></i>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="w-6 h-6 mx-auto bg-gray-100 rounded-full" title="Not scheduled for this day"></div>
+                                                    {% endif %}
+                                                {% elif day_info.date.strftime('%Y-%m-%d') == today.strftime('%Y-%m-%d') %}
+                                                    <!-- Today - show special today indicator if not logged -->
+                                                    <div class="w-6 h-6 mx-auto bg-gradient-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center shadow-sm hover:shadow transition-all cursor-pointer" title="Today - {{ today.strftime('%b %d, %Y') }}">
+                                                        <i class="fas fa-star text-white text-xs"></i>
+                                                    </div>
+                                                {% else %}
+                                                    <!-- Future day -->
+                                                    <div class="w-6 h-6 mx-auto bg-gray-200 rounded-full opacity-50" title="Future date: {{ day_info.date.strftime('%b %d, %Y') }}"></div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Color Legend -->
+                <div class="mt-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Legend</h4>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 rounded-full mr-2"></div>
+                            <span class="text-sm text-gray-600">Completed</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 bg-gradient-to-br from-red-400 to-red-600 rounded-full mr-2"></div>
+                            <span class="text-sm text-gray-600">Missed</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full mr-2"></div>
+                            <span class="text-sm text-gray-600">Not Logged</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center mr-2">
+                                <i class="fas fa-star text-white text-xs"></i>
+                            </div>
+                            <span class="text-sm text-gray-600">Today</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 bg-gray-100 rounded-full mr-2"></div>
+                            <span class="text-sm text-gray-600">Not Scheduled</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-5 h-5 bg-gray-200 rounded-full opacity-50 mr-2"></div>
+                            <span class="text-sm text-gray-600">Future Date</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Section -->
+            <div class="flex justify-between items-center mb-4 mt-8">
+                <h2 class="text-2xl font-bold text-gray-800">Monthly Statistics</h2>
+                <div class="bg-indigo-50 text-indigo-700 px-4 py-1 rounded-full text-sm font-medium">
+                    {{ month_name }} {{ year }}
+                </div>
+            </div>
+            
+            <!-- Main Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all duration-300 border border-indigo-100">
+                    <div class="flex justify-center mb-3">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-tasks text-indigo-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-1">Total Habits</h3>
+                    <p class="text-3xl font-bold text-indigo-600">{{ habits|length }}</p>
+                    <p class="text-xs text-gray-500 mt-2">Active this month</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all duration-300 border border-green-100">
+                    <div class="flex justify-center mb-3">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-chart-pie text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-1">Completion Rate</h3>
+                    <p class="text-3xl font-bold text-green-600">{{ completion_rate }}%</p>
+                    <div class="w-full bg-green-200 rounded-full h-1.5 mt-2">
+                        {% set completion_width = completion_rate|string + '%' %}
+                        <div class="bg-green-500 h-1.5 rounded-full" {% if completion_rate > 0 %}style="width: {{ completion_rate }}%"{% else %}class="w-0"{% endif %}></div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">Completed tasks this month</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all duration-300 border border-purple-100">
+                    <div class="flex justify-center mb-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-fire text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-1">Best Streak</h3>
+                    <p class="text-3xl font-bold text-purple-600">{{ best_streak }}</p>
+                    <p class="text-xs text-gray-500 mt-2">Consecutive days</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all duration-300 border border-amber-100">
+                    <div class="flex justify-center mb-3">
+                        <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-star text-amber-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-1">Consistency Score</h3>
+                    {% set consistency_score = (completion_rate * 0.7 + (best_streak / 30 * 100) * 0.3)|round|int if best_streak else completion_rate %}
+                    <p class="text-3xl font-bold text-amber-600">{{ consistency_score }}</p>
+                    <div class="w-full bg-amber-200 rounded-full h-1.5 mt-2">
+                        {% set consistency_width = consistency_score %}
+                        <div class="bg-amber-500 h-1.5 rounded-full" {% if consistency_width > 0 %}style="width: {{ consistency_width }}%"{% else %}class="w-0"{% endif %}></div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all duration-300 border border-blue-100">
+                    <div class="flex justify-center mb-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-medal text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-1">Most Consistent</h3>
+                    <p class="text-xl font-bold text-blue-600 truncate">{{ most_consistent.name }}</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ most_consistent.rate }}% completion</p>
+                </div>
+            </div>
+            
+            <!-- Advanced Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Weekly Progress Chart -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Weekly Progress</h3>
+                        <div class="text-xs text-gray-500">This month's daily activity</div>
+                    </div>
+                    <div class="flex space-x-2 h-40">
+                        {% set days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+                        {% for day in days %}
+                            {% set day_logs = logs|selectattr('date.strftime("%a")', 'equalto', day)|list %}
+                            {% set day_completion = (day_logs|selectattr('completed')|list|length / day_logs|length * 100)|round|int if day_logs|length > 0 else 0 %}
+                            <div class="flex flex-col items-center flex-1">
+                                {% set height_style = day_completion|string + '%' %}
+                                <div class="w-full bg-indigo-100 rounded-t-lg relative" style="height: {{ height_style }}">
+                                    <div class="bg-gradient-to-t from-indigo-600 to-indigo-400 w-full h-full rounded-t-lg"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-2">{{ day }}</div>
+                                <div class="text-xs font-medium text-indigo-600">{{ day_completion }}%</div>
+                                {% if day_logs|length > 0 %}
+                                <div class="text-xs text-gray-400 mt-1">({{ day_logs|selectattr('completed')|list|length }}/{{ day_logs|length }})</div>
+                                {% else %}
+                                <div class="text-xs text-gray-400 mt-1">(0/0)</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-100">
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            {% set mon_logs = logs|selectattr('day_of_week', 'equalto', 0)|list %}
+                            {% set tue_logs = logs|selectattr('day_of_week', 'equalto', 1)|list %}
+                            {% set wed_logs = logs|selectattr('day_of_week', 'equalto', 2)|list %}
+                            {% set thu_logs = logs|selectattr('day_of_week', 'equalto', 3)|list %}
+                            {% set fri_logs = logs|selectattr('day_of_week', 'equalto', 4)|list %}
+                            {% set sat_logs = logs|selectattr('day_of_week', 'equalto', 5)|list %}
+                            {% set sun_logs = logs|selectattr('day_of_week', 'equalto', 6)|list %}
+                            
+                            {% set mon_pct = (mon_logs|selectattr('completed')|list|length / mon_logs|length * 100)|round|int if mon_logs|length > 0 else 0 %}
+                            {% set tue_pct = (tue_logs|selectattr('completed')|list|length / tue_logs|length * 100)|round|int if tue_logs|length > 0 else 0 %}
+                            {% set wed_pct = (wed_logs|selectattr('completed')|list|length / wed_logs|length * 100)|round|int if wed_logs|length > 0 else 0 %}
+                            {% set thu_pct = (thu_logs|selectattr('completed')|list|length / thu_logs|length * 100)|round|int if thu_logs|length > 0 else 0 %}
+                            {% set fri_pct = (fri_logs|selectattr('completed')|list|length / fri_logs|length * 100)|round|int if fri_logs|length > 0 else 0 %}
+                            {% set sat_pct = (sat_logs|selectattr('completed')|list|length / sat_logs|length * 100)|round|int if sat_logs|length > 0 else 0 %}
+                            {% set sun_pct = (sun_logs|selectattr('completed')|list|length / sun_logs|length * 100)|round|int if sun_logs|length > 0 else 0 %}
+                            
+                            {% set best_day_pct = [mon_pct, tue_pct, wed_pct, thu_pct, fri_pct, sat_pct, sun_pct]|max %}
+                            {% set best_day = 'Monday' if best_day_pct == mon_pct else
+                                           'Tuesday' if best_day_pct == tue_pct else
+                                           'Wednesday' if best_day_pct == wed_pct else
+                                           'Thursday' if best_day_pct == thu_pct else
+                                           'Friday' if best_day_pct == fri_pct else
+                                           'Saturday' if best_day_pct == sat_pct else
+                                           'Sunday' %}
+                            <span>Best day: <span class="font-medium text-indigo-600">{{ best_day }}</span></span>
+                            {% set avg_pct = (mon_pct + tue_pct + wed_pct + thu_pct + fri_pct + sat_pct + sun_pct) / 7 %}
+                            <span>Average: <span class="font-medium text-indigo-600">{{ avg_pct|round|int }}%</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Habit Breakdown -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Habit Breakdown</h3>
+                        <div class="text-xs text-gray-500">Detailed habit performance</div>
+                    </div>
+                    <div class="space-y-4">
+                        {% for habit in habits %}
+                            {% set habit_logs = logs|selectattr('habit_id', 'equalto', habit.id)|list %}
+                            {% set habit_completion = (habit_logs|selectattr('completed')|list|length / habit_logs|length * 100)|round|int if habit_logs|length > 0 else 0 %}
+                            <div class="p-3 rounded-lg {% if habit_completion >= 80 %}bg-green-50{% elif habit_completion >= 50 %}bg-yellow-50{% else %}bg-red-50{% endif %}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center">
+                                        <span class="font-medium text-gray-700">{{ habit.name }}</span>
+                                        {% if habit_completion >= 80 %}
+                                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Excellent</span>
+                                        {% elif habit_completion >= 50 %}
+                                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Good</span>
+                                        {% else %}
+                                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Needs Focus</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="text-xs font-medium {% if habit_completion >= 80 %}text-green-600{% elif habit_completion >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ habit_completion }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    {% set habit_width = habit_completion|string + '%' %}
+                                    {% if habit_completion >= 80 %}
+                                        {% set bar_color = 'bg-green-500' %}
+                                    {% elif habit_completion >= 50 %}
+                                        {% set bar_color = 'bg-yellow-500' %}
+                                    {% else %}
+                                        {% set bar_color = 'bg-red-500' %}
+                                    {% endif %}
+                                    <div class="{{ bar_color }} h-1.5 rounded-full" {% if habit_completion > 0 %}style="width: {{ habit_completion }}%"{% else %}class="w-0"{% endif %}></div>
+                                </div>
+                                <div class="flex justify-between mt-2 text-xs text-gray-500">
+                                    <span>{{ habit_logs|selectattr('completed')|list|length }}/{{ habit_logs|length }} completed</span>
+                                    <span>{{ habit.frequency }} frequency</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-100">
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            <span>Total habits: <span class="font-medium text-indigo-600">{{ habits|length }}</span></span>
+                            {% set total_logs = 0 %}
+                            {% set completed_logs = 0 %}
+                            {% for habit in habits %}
+                                {% set habit_logs = logs|selectattr('habit_id', 'equalto', habit.id)|list %}
+                                {% set total_logs = total_logs + habit_logs|length %}
+                                {% set completed_logs = completed_logs + habit_logs|selectattr('completed')|list|length %}
+                            {% endfor %}
+                            {% set avg_completion = (completed_logs / total_logs * 100)|round|int if total_logs > 0 else 0 %}
+                            <span>Average completion: <span class="font-medium text-indigo-600">{{ avg_completion }}%</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comparison with Previous Month -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Month-to-Month Comparison</h3>
+                
+                <!-- Set default values for comparison data since they're not provided by the backend -->
+                {% set completion_rate_change = 5 %}  <!-- Example value, would come from backend -->
+                {% set consistency_score = most_consistent.rate %}  <!-- Use the most consistent habit rate -->
+                {% set consistency_score_change = -2 %}  <!-- Example value, would come from backend -->
+                {% set avg_completion_change = 3 %}  <!-- Example value, would come from backend -->
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for metric, value, change in [('Completion Rate', completion_rate, completion_rate_change), 
+                                                   ('Consistency Score', consistency_score, consistency_score_change),
+                                                   ('Average Completion', avg_completion, avg_completion_change)] %}
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-sm font-medium text-gray-700">{{ metric }}</h4>
+                                <div class="flex items-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {% if change > 0 %}bg-green-100 text-green-800{% elif change < 0 %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if change > 0 %}
+                                            <i class="fas fa-arrow-up mr-1"></i>+{{ change }}%
+                                        {% elif change < 0 %}
+                                            <i class="fas fa-arrow-down mr-1"></i>{{ change }}%
+                                        {% else %}
+                                            <i class="fas fa-equals mr-1"></i>0%
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-2xl font-bold {% if change > 0 %}text-green-600{% elif change < 0 %}text-red-600{% else %}text-indigo-600{% endif %} mb-2">{{ value }}%</div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <div class="flex-grow h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                    {% if change > 0 %}
+                                        <div class="bg-gradient-to-r from-green-400 to-green-600 h-1.5 rounded-full" style="width: {{ value }}%"></div>
+                                    {% elif change < 0 %}
+                                        <div class="bg-gradient-to-r from-red-400 to-red-600 h-1.5 rounded-full" style="width: {{ value }}%"></div>
+                                    {% else %}
+                                        <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 h-1.5 rounded-full" style="width: {{ value }}%"></div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-xs font-medium {% if change > 0 %}text-green-600{% elif change < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                    {% if change > 0 %}
+                                        <i class="fas fa-trending-up"></i>
+                                    {% elif change < 0 %}
+                                        <i class="fas fa-trending-down"></i>
+                                    {% else %}
+                                        <i class="fas fa-minus"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mt-2 text-xs text-gray-500">
+                                {% if change > 0 %}
+                                    Improved from last month
+                                {% elif change < 0 %}
+                                    Decreased from last month
+                                {% else %}
+                                    Same as last month
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 pt-3 border-t border-gray-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500">Overall trend:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if completion_rate_change + consistency_score_change + avg_completion_change > 0 %}bg-green-100 text-green-800{% elif completion_rate_change + consistency_score_change + avg_completion_change < 0 %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if completion_rate_change + consistency_score_change + avg_completion_change > 0 %}
+                                <i class="fas fa-arrow-up mr-1"></i>Improving
+                            {% elif completion_rate_change + consistency_score_change + avg_completion_change < 0 %}
+                                <i class="fas fa-arrow-down mr-1"></i>Declining
+                            {% else %}
+                                <i class="fas fa-equals mr-1"></i>Stable
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tips Section -->
+            <div class="bg-indigo-50 rounded-xl p-6 shadow-md">
+                <h3 class="text-xl font-semibold text-indigo-800 mb-4">Tips for Consistency</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start">
+                        <div class="bg-white rounded-full p-2 mr-3">
+                            <i class="fas fa-link text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Chain Your Habits</h4>
+                            <p class="text-sm text-gray-600">Link new habits to existing ones to create a natural flow in your routine.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-white rounded-full p-2 mr-3">
+                            <i class="fas fa-calendar-check text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Start Small</h4>
+                            <p class="text-sm text-gray-600">Begin with easy wins to build momentum before tackling more challenging habits.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-white rounded-full p-2 mr-3">
+                            <i class="fas fa-bell text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Use Reminders</h4>
+                            <p class="text-sm text-gray-600">Set specific times for your habits and use reminders until they become automatic.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-white rounded-full p-2 mr-3">
+                            <i class="fas fa-users text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Accountability</h4>
+                            <p class="text-sm text-gray-600">Share your goals with others or compete with your Twin for motivation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

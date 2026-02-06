@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-5 px-6 flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-indigo-600 mr-4 shadow-md">
+                    <i class="fas fa-robot text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">Digital Twin</h1>
+                    <p class="text-sm text-indigo-200">Your AI Twin Everywhere</p>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <button id="refreshChat" class="text-white hover:text-indigo-200 bg-indigo-500 bg-opacity-30 rounded-full p-2 transition-all hover:bg-opacity-50" title="Refresh conversation">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="clearChat" class="text-white hover:text-indigo-200 bg-indigo-500 bg-opacity-30 rounded-full p-2 transition-all hover:bg-opacity-50" title="Clear conversation">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex h-[650px]">
+            <!-- Chat Area -->
+            <div class="flex-1 flex flex-col">
+                <!-- Messages Container -->
+                <div id="chatMessages" class="flex-1 p-6 overflow-y-auto space-y-6 bg-gradient-to-b from-gray-50 to-white">
+                    <!-- Welcome Message -->
+                    <div class="flex items-start">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white mr-3 flex-shrink-0 shadow-md">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 max-w-[80%] shadow-sm border border-gray-100">
+                            <p class="text-gray-800 font-medium">
+                                Hello {{ current_user.username }}! I'm your Digital Twin, your AI twin that's with you everywhere. I can help you with:
+                            </p>
+                            <ul class="space-y-1.5 text-gray-700 mt-3 text-sm">
+                                <li class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Personalized advice for specific habits</li>
+                                <li class="flex items-center"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Tracking your streaks and progress</li>
+                                <li class="flex items-center"><i class="fas fa-fire text-orange-500 mr-2"></i> Motivation when you're feeling stuck</li>
+                                <li class="flex items-center"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Custom habit suggestions based on your goals</li>
+                                <li class="flex items-center"><i class="fas fa-trophy text-purple-500 mr-2"></i> Daily challenges to keep you engaged</li>
+                                <li class="flex items-center"><i class="fas fa-mobile-alt text-indigo-500 mr-2"></i> Screen time insights and digital wellbeing tips</li>
+                                <li class="flex items-center"><i class="fas fa-medal text-amber-500 mr-2"></i> Achievement tracking and celebration</li>
+                            </ul>
+                            <p class="text-gray-800 mt-3 font-medium">Just ask me questions in natural language, and I'll provide personalized guidance for your habit journey. What would you like help with today?</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Message History will be loaded here -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="flex items-start {% if message.is_user %}justify-end{% endif %}">
+                                {% if not message.is_user %}
+                                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-2 flex-shrink-0">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="{% if message.is_user %}bg-indigo-600 text-white{% else %}bg-indigo-50 text-gray-800{% endif %} rounded-lg p-3 max-w-[80%]">
+                                    {{ message.content|safe }}
+                                </div>
+                                
+                                {% if message.is_user %}
+                                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white ml-2 flex-shrink-0">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <!-- Suggested Questions -->
+                <div id="suggestedQuestions" class="p-5 border-t border-gray-200 bg-gray-50">
+                    <p class="text-sm text-gray-600 mb-3 font-medium">Try asking:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-chart-line text-indigo-500 mr-2"></i> How am I doing with my habits?
+                        </button>
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-fire text-orange-500 mr-2"></i> What are my current streaks?
+                        </button>
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Suggest a new habit for me
+                        </button>
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-trophy text-purple-500 mr-2"></i> Give me some motivation
+                        </button>
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-question-circle text-blue-500 mr-2"></i> What can you help me with?
+                        </button>
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-mobile-alt text-indigo-500 mr-2"></i> How's my screen time?
+                        </button>
+                        <button class="suggestion-btn bg-white hover:bg-indigo-50 text-indigo-700 text-sm py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:border-indigo-200 transition-all flex items-center">
+                            <i class="fas fa-medal text-amber-500 mr-2"></i> Give me a challenge for today
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="border-t border-gray-200 p-5 bg-white">
+                    <form id="chatForm" class="flex items-center">
+                        <div class="flex items-center bg-gray-50 rounded-full border border-gray-200 px-4 py-1 shadow-sm hover:shadow transition-all w-full">
+                            <input type="text" id="messageInput" class="flex-1 bg-transparent px-2 py-2 focus:outline-none" placeholder="Ask your habit coach anything...">
+                            <button type="submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2 rounded-full hover:shadow-md focus:outline-none transition-all">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Context Panel -->
+            <div class="w-80 border-l border-gray-200 bg-gradient-to-b from-gray-50 to-white p-5 hidden md:block overflow-y-auto">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-user-circle text-indigo-500 mr-2"></i> Your Profile</h3>
+                
+                <!-- Habit Stats -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center"><i class="fas fa-chart-pie text-purple-500 mr-2"></i> Habit Stats</h4>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <span class="text-sm text-gray-700">Active Habits</span>
+                            </div>
+                            <span class="text-lg font-bold text-gray-800">{{ habit_stats.active_habits }}</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <span class="text-sm text-gray-700">Completion Rate</span>
+                            </div>
+                            <span class="text-lg font-bold text-gray-800">{{ habit_stats.completion_rate }}%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <span class="text-sm text-gray-700">Longest Streak</span>
+                            </div>
+                            <span class="text-lg font-bold text-gray-800">{{ habit_stats.longest_streak }} days</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Habits -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center"><i class="fas fa-history text-blue-500 mr-2"></i> Recent Habits</h4>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                        {% if recent_habits %}
+                            <ul class="space-y-3">
+                                {% for habit in recent_habits %}
+                                    <li class="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center">
+                                                <div class="w-7 h-7 rounded-full flex items-center justify-center mr-2 {% if habit.completed %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-600{% endif %}">
+                                                    {% if habit.completed %}
+                                                        <i class="fas fa-check"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-times"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <span class="text-sm font-medium text-gray-700">{{ habit.name }}</span>
+                                            </div>
+                                            <span class="text-xs bg-gray-100 text-gray-700 py-1 px-2 rounded-full">{{ habit.last_logged }}</span>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="flex flex-col items-center justify-center py-4">
+                                <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <p class="text-sm text-gray-500">No recent habits logged</p>
+                                <p class="text-xs text-gray-400 mt-1">Complete habits to see them here</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Screen Time -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center"><i class="fas fa-mobile-alt text-indigo-500 mr-2"></i> Screen Time</h4>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                        {% if screen_time %}
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <span class="text-sm text-gray-700">Daily Average</span>
+                                </div>
+                                <span class="text-lg font-bold text-gray-800">{{ screen_time.daily_avg }}</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </div>
+                                    <span class="text-sm text-gray-700">Most Used App</span>
+                                </div>
+                                <span class="text-sm font-medium px-3 py-1 bg-purple-50 text-purple-700 rounded-full">{{ screen_time.most_used_app }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <span class="text-sm text-gray-700">Weekly Change</span>
+                                </div>
+                                <span class="text-sm font-medium px-3 py-1 rounded-full {% if screen_time.weekly_change_pct < 0 %}bg-green-50 text-green-700{% elif screen_time.weekly_change_pct > 0 %}bg-red-50 text-red-700{% else %}bg-gray-50 text-gray-700{% endif %}">
+                                    {% if screen_time.weekly_change_pct > 0 %}+{% endif %}{{ screen_time.weekly_change_pct }}%
+                                </span>
+                            </div>
+                        {% else %}
+                            <div class="flex flex-col items-center justify-center py-4">
+                                <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <p class="text-sm text-gray-500">No screen time data available</p>
+                                <p class="text-xs text-gray-400 mt-1">Connect your device to see stats</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const clearChatBtn = document.getElementById('clearChat');
+        const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+        
+        // Scroll to bottom of chat
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Add a user message to the chat
+        function addUserMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start justify-end';
+            messageDiv.innerHTML = `
+                <div class="bg-indigo-600 text-white rounded-lg p-3 max-w-[80%]">
+                    ${message}
+                </div>
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white ml-2 flex-shrink-0">
+                    <i class="fas fa-user"></i>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Add a bot message to the chat
+        function addBotMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start';
+            messageDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-2 flex-shrink-0">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bg-indigo-50 rounded-lg p-3 max-w-[80%]">
+                    ${message}
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Add loading indicator
+        function addLoadingIndicator() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'flex items-start';
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-2 flex-shrink-0">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bg-indigo-50 rounded-lg p-3 max-w-[80%]">
+                    <div class="flex space-x-2">
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(loadingDiv);
+            scrollToBottom();
+        }
+        
+        // Remove loading indicator
+        function removeLoadingIndicator() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+        
+        // Handle form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message) {
+                // Add user message to chat
+                addUserMessage(message);
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Add loading indicator
+                addLoadingIndicator();
+                
+                // Send message to server
+                fetch('/chatbot/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove loading indicator
+                    removeLoadingIndicator();
+                    
+                    // Add bot response to chat
+                    addBotMessage(data.response);
+                    
+                    // Update suggested questions if provided
+                    if (data.suggested_questions && data.suggested_questions.length > 0) {
+                        const suggestedQuestionsDiv = document.getElementById('suggestedQuestions');
+                        const questionsContainer = suggestedQuestionsDiv.querySelector('.flex');
+                        questionsContainer.innerHTML = '';
+                        
+                        data.suggested_questions.forEach(question => {
+                            const btn = document.createElement('button');
+                            btn.className = 'suggestion-btn bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm py-1 px-3 rounded-full';
+                            btn.textContent = question;
+                            btn.addEventListener('click', function() {
+                                messageInput.value = question;
+                                chatForm.dispatchEvent(new Event('submit'));
+                            });
+                            questionsContainer.appendChild(btn);
+                        });
+                    }
+                })
+                .catch(error => {
+                    // Remove loading indicator
+                    removeLoadingIndicator();
+                    
+                    // Show error message
+                    addBotMessage('Sorry, there was an error processing your request. Please try again.');
+                    console.error('Error:', error);
+                });
+            }
+        });
+        
+        // Handle suggestion button clicks
+        suggestionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                messageInput.value = btn.textContent.trim();
+                chatForm.dispatchEvent(new Event('submit'));
+            });
+        });
+        
+        // Handle clear chat button
+        clearChatBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear the chat history?')) {
+                fetch('/chatbot/clear', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove all messages except the welcome message
+                        while (chatMessages.children.length > 1) {
+                            chatMessages.removeChild(chatMessages.lastChild);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+        
+        // Initial scroll to bottom
+        scrollToBottom();
+    });
+</script>
+{% endblock %}

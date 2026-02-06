@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Custom CSS for profile image fallback -->
+<style>
+    .profile-container {
+        position: relative;
+    }
+    .profile-fallback {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #e0e7ff; /* indigo-100 */
+        color: #6366f1; /* indigo-500 */
+        font-size: 2rem;
+        font-weight: bold;
+        z-index: 1;
+    }
+    .profile-image {
+        position: relative;
+        z-index: 2;
+    }
+    .profile-image[src=""], 
+    .profile-image:not([src]) {
+        opacity: 0;
+    }
+</style>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column -->
+    <div class="lg:col-span-2">
+        <!-- Welcome Card -->
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex flex-col sm:flex-row items-center">
+                <div class="relative">
+                    <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md profile-container">
+                        <div class="profile-fallback">{{ current_user.username[0] | upper }}</div>
+                        {% if current_user.profile_pic and current_user.profile_pic != 'default.jpg' %}
+                            <img src="{{ url_for('static', filename='img/profile/' + current_user.profile_pic) }}" 
+                                 alt="{{ current_user.username }}" class="w-full h-full object-cover profile-image">
+                        {% endif %}
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                <div class="ml-0 sm:ml-5 mt-4 sm:mt-0 text-center sm:text-left">
+                    <h2 class="text-2xl font-bold text-white">Welcome back, {{ current_user.username }}!</h2>
+                    <p class="text-indigo-100">{{ now.strftime('%A, %B %d, %Y') }}</p>
+                    <div class="mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
+                        <span class="bg-white bg-opacity-20 text-white text-xs px-2 py-1 rounded-full">
+                            <i class="fas fa-fire mr-1"></i> {{ total_streak }} Day Streak
+                        </span>
+                        <span class="bg-white bg-opacity-20 text-white text-xs px-2 py-1 rounded-full">
+                            <i class="fas fa-chart-line mr-1"></i> {{ completion_rate }}% Completion
+                        </span>
+                    </div>
+                </div>
+                <div class="ml-auto hidden sm:block">
+                    <a href="{{ url_for('main.profile') }}" class="bg-white text-indigo-600 hover:bg-indigo-50 transition px-4 py-2 rounded-lg shadow-sm font-medium">
+                        <i class="fas fa-user-edit mr-1"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Habits Overview -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                        <i class="fas fa-list-check text-indigo-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Your Habits</h3>
+                </div>
+                <a href="{{ url_for('habits.view_habits') }}" class="text-indigo-600 hover:text-indigo-800 flex items-center">
+                    <span>View All</span>
+                    <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
+            </div>
+            
+            {% if habits %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for habit in habits[:4] %}
+                        <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition group hover:border-indigo-200">
+                            <div class="flex items-start mb-2">
+                                {% set habit_color = 'bg-green-100 text-green-600' if habit.current_streak() > 5 else 'bg-yellow-100 text-yellow-600' if habit.current_streak() > 0 else 'bg-gray-100 text-gray-600' %}
+                                <div class="w-10 h-10 rounded-full {{ habit_color }} flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="{% if habit.category == 'Health' %}fas fa-heart{% elif habit.category == 'Productivity' %}fas fa-laptop{% elif habit.category == 'Mindfulness' %}fas fa-brain{% else %}fas fa-star{% endif %}"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <h4 class="font-bold text-gray-800 group-hover:text-indigo-700 transition">{{ habit.name }}</h4>
+                                    <p class="text-sm text-gray-600 mb-2">{{ habit.description[:50] }}{% if habit.description|length > 50 %}...{% endif %}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
+                                        <i class="fas fa-fire text-orange-500 text-sm"></i>
+                                    </div>
+                                    <span class="text-sm font-medium">{{ habit.current_streak() }} day streak</span>
+                                </div>
+                                <a href="{{ url_for('habits.log_habit', habit_id=habit.id) }}" 
+                                   class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-indigo-200 transition flex items-center">
+                                    <i class="fas fa-check mr-1"></i> Log Today
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if habits|length > 4 %}
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('habits.view_habits') }}" class="text-indigo-600 hover:text-indigo-800">
+                            See {{ habits|length - 4 }} more habit{% if habits|length - 4 != 1 %}s{% endif %}
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="bg-gray-50 rounded-lg p-6 text-center">
+                    <p class="text-gray-600 mb-4">You haven't created any habits yet.</p>
+                    <a href="{{ url_for('habits.new_habit') }}" 
+                       class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        Create Your First Habit
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
+            
+            {% if recent_logs %}
+                <div class="space-y-3">
+                    {% for log in recent_logs[:5] %}
+                        <div class="flex items-center border-b pb-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center {% if log.completed %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-600{% endif %} mr-3">
+                                <i class="fas {% if log.completed %}fa-check{% else %}fa-times{% endif %}"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">
+                                    {% set habit = log.habit %}
+                                    {{ habit.name }}
+                                </p>
+                                <p class="text-sm text-gray-600">{{ log.date.strftime('%B %d, %Y') }}</p>
+                            </div>
+                            {% if log.notes %}
+                                <div class="ml-auto text-gray-500 text-sm">
+                                    <i class="fas fa-comment-alt"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center">No recent activity to show.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div>
+        <!-- Digital Wellbeing Card -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Digital Wellbeing</h3>
+                <a href="{{ url_for('wellbeing.digital_wellbeing') }}" class="text-indigo-600 hover:text-indigo-800">Details</a>
+            </div>
+            
+            {% if total_screen_time %}
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-1">Total Screen Time (Last 7 Days)</p>
+                    <p class="text-2xl font-bold">
+                        {{ (total_screen_time // 60)|int }}h {{ (total_screen_time % 60)|int }}m
+                    </p>
+                </div>
+                
+                {% if top_apps %}
+                    <h4 class="font-bold text-sm text-gray-700 mb-2">Top Apps</h4>
+                    <div class="space-y-2">
+                        {% for app, minutes in top_apps[:3] %}
+                            <div class="flex justify-between items-center">
+                                <span>{{ app }}</span>
+                                <span class="text-gray-600">
+                                    {{ (minutes // 60)|int }}h {{ (minutes % 60)|int }}m
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('wellbeing.upload_screen_time') }}" 
+                           class="block text-center bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-200">
+                            Upload New Data
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="bg-gray-50 rounded-lg p-6 text-center">
+                    <p class="text-gray-600 mb-4">No screen time data available.</p>
+                    <a href="{{ url_for('wellbeing.upload_screen_time') }}" 
+                       class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        Upload Screen Time
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Achievements Card -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Recent Achievements</h3>
+                <a href="{{ url_for('gamification.achievements') }}" class="text-indigo-600 hover:text-indigo-800">View All</a>
+            </div>
+            
+            {% if achievements %}
+                <div class="grid grid-cols-2 gap-4">
+                    {% for user_achievement in achievements %}
+                        {% set achievement = user_achievement.achievement %}
+                        <div class="border rounded-lg p-3 text-center">
+                            <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                <i class="fas {% if achievement.icon %}{{ achievement.icon }}{% else %}fa-trophy{% endif %}"></i>
+                            </div>
+                            <h4 class="font-bold text-sm">{{ achievement.name }}</h4>
+                            <p class="text-xs text-gray-600">{{ user_achievement.earned_date.strftime('%b %d') }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center">No achievements yet. Keep going!</p>
+            {% endif %}
+        </div>
+        
+        <!-- AI Insights Card -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">AI Insights</h3>
+                <a href="{{ url_for('insights.ai_insights') }}" class="text-indigo-600 hover:text-indigo-800">More</a>
+            </div>
+            
+            <div class="bg-indigo-50 rounded-lg p-4 mb-4">
+                <div class="flex">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-indigo-800">Habit Suggestion</p>
+                        <p class="text-sm text-indigo-600">
+                            {% if habits %}
+                                {% if habits|length < 3 %}
+                                    Consider adding more habits to track your progress better.
+                                {% else %}
+                                    Focus on consistency with your current habits before adding more.
+                                {% endif %}
+                            {% else %}
+                                Start by adding a simple daily habit like drinking water or reading.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('chatbot.chatbot_page') }}" 
+               class="block text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                Chat with your Twin
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

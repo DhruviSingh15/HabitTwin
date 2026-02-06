@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Digital Twin Header -->
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-xl text-white p-8">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Your Digital Twin</h1>
+                    <p class="text-purple-100">Compete with your virtual self to build better habits</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="{{ url_for('gamification.achievements') }}" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-purple-50 transition transform hover:-translate-y-1 shadow-md">
+                        <i class="fas fa-trophy mr-2"></i>View Achievements
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Digital Twin Content -->
+        <div class="bg-white rounded-b-xl shadow-lg p-8">
+            {% if habit_comparisons %}
+                <!-- Challenge Card -->
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md mb-8">
+                    <div class="flex items-center">
+                        <div class="text-indigo-500 mr-4">
+                            <i class="fas fa-bolt text-3xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 mb-1">Today's Challenge</h2>
+                            <p class="text-gray-700">{{ challenge }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Stats Comparison -->
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Overall Performance</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Total Habits -->
+                        <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-700">Total Habits</h3>
+                                    <p class="text-3xl font-bold text-indigo-600 mt-1">{{ habit_comparisons|length }}</p>
+                                </div>
+                                <div class="bg-indigo-100 text-indigo-600 p-3 rounded-full">
+                                    <i class="fas fa-tasks text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Win-Loss Record -->
+                        <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+                            {% set user_wins = habit_comparisons|selectattr('completion_winner', 'equalto', 'user')|list|length %}
+                            {% set twin_wins = habit_comparisons|selectattr('completion_winner', 'equalto', 'twin')|list|length %}
+                            {% set ties = habit_comparisons|selectattr('completion_winner', 'equalto', 'tie')|list|length %}
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-700">Win-Loss Record</h3>
+                                    <p class="text-3xl font-bold {% if user_wins > twin_wins %}text-green-600{% elif twin_wins > user_wins %}text-red-600{% else %}text-yellow-600{% endif %} mt-1">
+                                        {{ user_wins }}-{{ twin_wins }}-{{ ties }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">Wins-Losses-Ties</p>
+                                </div>
+                                <div class="{% if user_wins > twin_wins %}bg-green-100 text-green-600{% elif twin_wins > user_wins %}bg-red-100 text-red-600{% else %}bg-yellow-100 text-yellow-600{% endif %} p-3 rounded-full">
+                                    <i class="{% if user_wins > twin_wins %}fas fa-trophy{% elif twin_wins > user_wins %}fas fa-robot{% else %}fas fa-equals{% endif %} text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Average Completion Rate -->
+                        <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
+                            {% set user_completion_sum = 0 %}
+                            {% set twin_completion_sum = 0 %}
+                            {% for comparison in habit_comparisons %}
+                                {% set user_completion_sum = user_completion_sum + comparison.user_completion %}
+                                {% set twin_completion_sum = twin_completion_sum + comparison.twin_completion %}
+                            {% endfor %}
+                            {% set user_avg = (user_completion_sum / habit_comparisons|length)|round if habit_comparisons|length > 0 else 0 %}
+                            {% set twin_avg = (twin_completion_sum / habit_comparisons|length)|round if habit_comparisons|length > 0 else 0 %}
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-700">Avg. Completion</h3>
+                                    <div class="flex items-center mt-1">
+                                        <span class="text-blue-600 font-bold text-xl">{{ user_avg }}%</span>
+                                        <span class="mx-2 text-gray-400">vs</span>
+                                        <span class="text-purple-600 font-bold text-xl">{{ twin_avg }}%</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">You vs Twin</p>
+                                </div>
+                                <div class="bg-purple-100 text-purple-600 p-3 rounded-full">
+                                    <i class="fas fa-chart-pie text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Habit Comparisons -->
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">You vs. Your Digital Twin</h2>
+                
+                <div class="space-y-8">
+                    {% for comparison in habit_comparisons %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-300">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-800">{{ comparison.habit.name }}</h3>
+                                <span class="px-3 py-1 rounded-full text-xs font-medium {% if comparison.completion_winner == 'user' %}bg-green-100 text-green-800{% elif comparison.completion_winner == 'twin' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {% if comparison.completion_winner == 'user' %}
+                                        <i class="fas fa-trophy mr-1"></i> You're winning
+                                    {% elif comparison.completion_winner == 'twin' %}
+                                        <i class="fas fa-robot mr-1"></i> Twin is ahead
+                                    {% else %}
+                                        <i class="fas fa-equals mr-1"></i> Tied
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Current Streak Comparison -->
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-3">Current Streak</h4>
+                                    <div class="flex items-center">
+                                        <div class="w-1/2 pr-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-blue-100 text-blue-600 p-2 rounded-full mr-3">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">You</p>
+                                                    <p class="text-xl font-bold text-gray-800">{{ comparison.user_streak }} days</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="w-1/2 pl-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-purple-100 text-purple-600 p-2 rounded-full mr-3">
+                                                    <i class="fas fa-robot"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Twin</p>
+                                                    <p class="text-xl font-bold text-gray-800">{{ comparison.twin_streak }} days</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Winner Badge -->
+                                    <div class="mt-3 text-center">
+                                        {% if comparison.streak_winner == "user" %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-trophy mr-1"></i> You're winning!
+                                            </span>
+                                        {% elif comparison.streak_winner == "twin" %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-exclamation-circle mr-1"></i> Twin is ahead
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                <i class="fas fa-equals mr-1"></i> It's a tie
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Completion Rate Comparison -->
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-3">Completion Rate</h4>
+                                    <div class="flex items-center">
+                                        <div class="w-1/2 pr-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-blue-100 text-blue-600 p-2 rounded-full mr-3">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">You</p>
+                                                    <p class="text-xl font-bold text-gray-800">{{ comparison.user_completion|round }}%</p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                                                {% set user_width = comparison.user_completion|round|string + '%' %}
+                                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ user_width }}; display: block;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="w-1/2 pl-4">
+                                            <div class="flex items-center">
+                                                <div class="bg-purple-100 text-purple-600 p-2 rounded-full mr-3">
+                                                    <i class="fas fa-robot"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Twin</p>
+                                                    <p class="text-xl font-bold text-gray-800">{{ comparison.twin_completion|round }}%</p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                                                {% set twin_width = comparison.twin_completion|round|string + '%' %}
+                                                <div class="bg-purple-600 h-2.5 rounded-full" style="width: {{ twin_width }}; display: block;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Winner Badge -->
+                                    <div class="mt-3 text-center">
+                                        {% if comparison.completion_winner == "user" %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-trophy mr-1"></i> You're winning!
+                                            </span>
+                                        {% elif comparison.completion_winner == "twin" %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-exclamation-circle mr-1"></i> Twin is ahead
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                <i class="fas fa-equals mr-1"></i> It's a tie
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- View Habit Button -->
+                            <div class="mt-6 text-center">
+                                <a href="{{ url_for('habits.habit', habit_id=comparison.habit.id) }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View Habit Details
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Tips Section -->
+                <div class="mt-10 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4">How to Beat Your Digital Twin</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                            <span class="text-gray-700">Log your habits consistently every day</span>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                            <span class="text-gray-700">Focus on building streaks - don't break the chain!</span>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                            <span class="text-gray-700">Set reminders to complete your habits at the same time each day</span>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                            <span class="text-gray-700">Check your progress regularly to stay motivated</span>
+                        </li>
+                    </ul>
+                </div>
+            {% else %}
+                <!-- No Digital Twin Yet -->
+                <div class="text-center py-12">
+                    <div class="text-indigo-400 mb-4">
+                        <i class="fas fa-robot text-8xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Digital Twin Yet</h2>
+                    <p class="text-gray-600 max-w-md mx-auto mb-6">
+                        Create habits and log them consistently to generate your digital twin. 
+                        Your twin will help motivate you by providing friendly competition!
+                    </p>
+                    <a href="{{ url_for('habits.new_habit') }}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">
+                        <i class="fas fa-plus mr-2"></i> Create Your First Habit
+                    </a>
+                </div>
+                
+                <!-- How It Works -->
+                <div class="mt-12 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4">How Digital Twins Work</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-indigo-500 text-center mb-3">
+                                <i class="fas fa-clipboard-list text-3xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800 text-center mb-2">1. Create Habits</h4>
+                            <p class="text-gray-600 text-sm text-center">Start by creating habits you want to build and maintain</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-indigo-500 text-center mb-3">
+                                <i class="fas fa-calendar-check text-3xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800 text-center mb-2">2. Log Consistently</h4>
+                            <p class="text-gray-600 text-sm text-center">Log your habits regularly to build your digital profile</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-indigo-500 text-center mb-3">
+                                <i class="fas fa-trophy text-3xl"></i>
+                            </div>
+                            <h4 class="font-semibold text-gray-800 text-center mb-2">3. Compete & Improve</h4>
+                            <p class="text-gray-600 text-sm text-center">Compete with your twin to improve your habits</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

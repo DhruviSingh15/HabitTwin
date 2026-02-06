@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 text-white py-4 px-6">
+            <h2 class="text-2xl font-bold">Upload Screen Time Data</h2>
+            <p class="text-indigo-200">Upload your screen time data to track your digital wellbeing</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            Please upload an Excel (.xlsx) file with your screen time data. The file should have columns for:
+                        </p>
+                        <ul class="list-disc list-inside text-sm text-blue-700 mt-1">
+                            <li>Date (YYYY-MM-DD format)</li>
+                            <li>App or Website name</li>
+                            <li>Minutes spent</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST" action="" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-6">
+                    <div class="flex items-center justify-center w-full">
+                        <label class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i class="fas fa-file-excel text-4xl text-gray-400 mb-3"></i>
+                                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                <p class="text-xs text-gray-500">Excel files only (.xlsx)</p>
+                            </div>
+                            {{ form.excel_file(class="hidden", id="file_input") }}
+                        </label>
+                    </div>
+                    {% if form.excel_file.errors %}
+                        <div class="text-red-500 text-xs italic mt-2">
+                            {% for error in form.excel_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div id="file_name" class="mt-2 text-sm text-gray-600 hidden">
+                        Selected file: <span id="file_name_text" class="font-medium"></span>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    {{ form.description.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.description.errors %}
+                        {{ form.description(rows=2, class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(rows=2, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", placeholder="Optional: Add notes about this upload...") }}
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    {{ form.submit(class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+                    <a href="{{ url_for('wellbeing.digital_wellbeing') }}" class="text-indigo-600 hover:text-indigo-800">Cancel</a>
+                </div>
+            </form>
+            
+            <div class="mt-8">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Sample Excel Format</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">App</th>
+                                <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Minutes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">2025-06-01</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">Instagram</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">45</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">2025-06-01</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">YouTube</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">120</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">2025-06-01</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">Netflix</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">90</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">2025-06-02</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">Instagram</td>
+                                <td class="px-4 py-2 border-b border-gray-200 text-sm">30</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 text-sm">2025-06-02</td>
+                                <td class="px-4 py-2 text-sm">TikTok</td>
+                                <td class="px-4 py-2 text-sm">60</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('wellbeing.download_template') }}" class="text-indigo-600 hover:text-indigo-800">
+                        <i class="fas fa-download mr-1"></i> Download Template
+                    </a>
+                </div>
+            </div>
+            
+            {% if upload_history %}
+                <div class="mt-8">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Upload History</h3>
+                    <div class="space-y-3">
+                        {% for upload in upload_history %}
+                            <div class="flex items-center border-b pb-3">
+                                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                    <i class="fas fa-file-excel"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">{{ upload.filename }}</p>
+                                    <p class="text-sm text-gray-600">{{ upload.upload_date.strftime('%B %d, %Y') }}</p>
+                                </div>
+                                {% if upload.description %}
+                                    <div class="ml-auto text-gray-500 text-sm">
+                                        <i class="fas fa-comment-alt"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file_input');
+        const fileNameDiv = document.getElementById('file_name');
+        const fileNameText = document.getElementById('file_name_text');
+        
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                fileNameDiv.classList.remove('hidden');
+                fileNameText.textContent = fileInput.files[0].name;
+            } else {
+                fileNameDiv.classList.add('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}

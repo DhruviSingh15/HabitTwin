@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Challenge Header -->
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-xl text-white p-8">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">24-Hour Digital Detox Challenge</h1>
+                    <p class="text-purple-100">Disconnect to reconnect with what matters most</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="{{ url_for('wellbeing.digital_detox') }}" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-purple-50 transition transform hover:-translate-y-1 shadow-md">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Detox
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challenge Content -->
+        <div class="bg-white rounded-b-xl shadow-lg p-8">
+            <!-- Challenge Timer -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md mb-8">
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-indigo-800 mb-2">Your Challenge is Active!</h2>
+                    <div class="inline-block bg-white px-4 py-2 rounded-lg shadow-sm mb-4">
+                        <div class="flex items-center text-indigo-600">
+                            <i class="fas fa-hourglass-half text-2xl mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Challenge ends in</p>
+                                <p class="text-2xl font-bold" id="countdown">24:00:00</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mt-6">
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <p class="text-gray-500 text-sm">Started</p>
+                            <p class="font-medium text-gray-800">{{ challenge_start.strftime('%b %d, %Y at %I:%M %p') }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <p class="text-gray-500 text-sm">Ends</p>
+                            <p class="font-medium text-gray-800">{{ challenge_end.strftime('%b %d, %Y at %I:%M %p') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- Apps to Avoid -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-ban text-red-500 mr-2"></i> Apps to Avoid
+                    </h2>
+                    
+                    {% if top_apps %}
+                        <div class="space-y-4">
+                            {% for app, minutes in top_apps %}
+                                <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 mr-3">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">{{ app }}</h4>
+                                            <p class="text-xs text-gray-500">{{ (minutes / 60)|round(1) }} hours of usage</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm">
+                                        <i class="fas fa-times text-red-500"></i>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-600">No app usage data available.</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Alternative Activities -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-leaf text-green-500 mr-2"></i> Try These Instead
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800">Read a book</h4>
+                                <p class="text-xs text-gray-500">Engage your mind without screens</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3">
+                                <i class="fas fa-hiking"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800">Go for a walk</h4>
+                                <p class="text-xs text-gray-500">Get fresh air and exercise</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800">Cook a meal</h4>
+                                <p class="text-xs text-gray-500">Try a new recipe</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3">
+                                <i class="fas fa-pencil-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800">Journal</h4>
+                                <p class="text-xs text-gray-500">Reflect on your thoughts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Challenge Rules -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl shadow-md mb-8">
+                <h2 class="text-xl font-bold text-indigo-800 mb-4">Challenge Rules</h2>
+                
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                        <span class="text-gray-700">Avoid all non-essential screen time for 24 hours</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                        <span class="text-gray-700">Keep your phone in a drawer or another room</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                        <span class="text-gray-700">Only use technology for essential work or emergency communication</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                        <span class="text-gray-700">Tell friends and family about your challenge so they know you're not ignoring them</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="text-indigo-500 mr-2 mt-1"><i class="fas fa-check-circle"></i></div>
+                        <span class="text-gray-700">After the challenge, reflect on how it felt and what you learned</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Challenge Progress -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Your Progress</h2>
+                
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                    <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%" id="progress-bar"></div>
+                </div>
+                
+                <div class="flex justify-between text-sm text-gray-500">
+                    <span>0%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+            
+            <!-- Challenge Completion -->
+            <div class="text-center">
+                <button id="completeBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-indigo-700 transition shadow-md" disabled>
+                    <i class="fas fa-trophy mr-2"></i>Complete Challenge
+                </button>
+                <p class="text-gray-500 mt-2 text-sm">Button will be enabled when the challenge is complete</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Calculate the end time of the challenge
+    const endTime = new Date('{{ challenge_end.isoformat() }}');
+    
+    // Update the countdown timer
+    function updateCountdown() {
+        const now = new Date();
+        const diff = endTime - now;
+        
+        if (diff <= 0) {
+            // Challenge complete
+            document.getElementById('countdown').textContent = "00:00:00";
+            document.getElementById('progress-bar').style.width = "100%";
+            document.getElementById('completeBtn').disabled = false;
+            return;
+        }
+        
+        // Calculate hours, minutes, seconds
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        // Format the time
+        const formattedTime = 
+            (hours < 10 ? "0" + hours : hours) + ":" + 
+            (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+            (seconds < 10 ? "0" + seconds : seconds);
+        
+        // Update the countdown display
+        document.getElementById('countdown').textContent = formattedTime;
+        
+        // Calculate progress (from 0% to 100%)
+        const totalDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const elapsed = totalDuration - diff;
+        const progress = (elapsed / totalDuration) * 100;
+        
+        // Update progress bar
+        document.getElementById('progress-bar').style.width = progress + "%";
+    }
+    
+    // Update the countdown every second
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    
+    // Handle challenge completion
+    document.getElementById('completeBtn').addEventListener('click', function() {
+        alert('Congratulations on completing the 24-Hour Digital Detox Challenge! You should be proud of yourself for taking this important step toward digital wellbeing.');
+        window.location.href = "{{ url_for('wellbeing.digital_wellbeing') }}";
+    });
+</script>
+{% endblock scripts %}
+
+{% endblock content %}

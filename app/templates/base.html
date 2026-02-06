@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if title %}{{ title }} - {% endif %}HabitTwin</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plotly.js for charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .flash-messages {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('main.home') }}" class="text-2xl font-bold">HabitTwin</a>
+                    {% if current_user.is_authenticated %}
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{{ url_for('main.home') }}" class="hover:text-indigo-200">Dashboard</a>
+                        <a href="{{ url_for('habits.view_habits') }}" class="hover:text-indigo-200">Habits</a>
+                        <a href="{{ url_for('wellbeing.digital_wellbeing') }}" class="hover:text-indigo-200">Digital Wellbeing</a>
+                        <a href="{{ url_for('insights.ai_insights') }}" class="hover:text-indigo-200">AI Insights</a>
+                        <a href="{{ url_for('gamification.achievements') }}" class="hover:text-indigo-200">Achievements</a>
+                        <a href="{{ url_for('chatbot.chatbot_page') }}" class="hover:text-indigo-200">Digital Twin</a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('profile.view_profile') }}" class="flex items-center hover:text-indigo-200">
+                            <img src="{{ url_for('static', filename='img/profile/' + current_user.profile_pic) }}" 
+                                alt="Profile" class="w-8 h-8 rounded-full mr-2">
+                            {{ current_user.username }}
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" class="hover:text-indigo-200">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="hover:text-indigo-200">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-100">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation (only shown on small screens) -->
+    {% if current_user.is_authenticated %}
+    <div class="md:hidden bg-indigo-700 text-white p-2">
+        <div class="flex justify-between overflow-x-auto space-x-4 whitespace-nowrap">
+            <a href="{{ url_for('main.home') }}" class="px-2 py-1 hover:bg-indigo-600 rounded">Dashboard</a>
+            <a href="{{ url_for('habits.view_habits') }}" class="px-2 py-1 hover:bg-indigo-600 rounded">Habits</a>
+            <a href="{{ url_for('wellbeing.digital_wellbeing') }}" class="px-2 py-1 hover:bg-indigo-600 rounded">Wellbeing</a>
+            <a href="{{ url_for('insights.ai_insights') }}" class="px-2 py-1 hover:bg-indigo-600 rounded">Insights</a>
+            <a href="{{ url_for('gamification.achievements') }}" class="px-2 py-1 hover:bg-indigo-600 rounded">Achievements</a>
+            <a href="{{ url_for('chatbot.chatbot_page') }}" class="px-2 py-1 hover:bg-indigo-600 rounded">Coach</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-white border-l-4 {% if category == 'success' %}border-green-500{% elif category == 'danger' %}border-red-500{% elif category == 'warning' %}border-yellow-500{% else %}border-blue-500{% endif %} p-4 mb-2 shadow-md rounded">
+                        <div class="flex items-center">
+                            <div class="py-1">
+                                <svg class="w-6 h-6 mr-4 {% if category == 'success' %}text-green-500{% elif category == 'danger' %}text-red-500{% elif category == 'warning' %}text-yellow-500{% else %}text-blue-500{% endif %}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {% if category == 'success' %}
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    {% elif category == 'danger' %}
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    {% elif category == 'warning' %}
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    {% else %}
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    {% endif %}
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ message }}</p>
+                            </div>
+                            <button class="ml-auto" onclick="this.parentElement.parentElement.remove()">
+                                <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h2 class="text-xl font-bold">HabitTwin</h2>
+                    <p class="text-gray-400">Track habits, monitor screen time, and improve wellbeing</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('main.about') }}" class="hover:text-indigo-300">About</a>
+                    <a href="{{ url_for('main.features') }}" class="hover:text-indigo-300">Features</a>
+                    <a href="#" class="hover:text-indigo-300">Privacy</a>
+                    <a href="#" class="hover:text-indigo-300">Terms</a>
+                </div>
+            </div>
+            <div class="mt-4 text-center text-gray-400">
+                &copy; {{ now.year }} HabitTwin. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const flashMessages = document.querySelectorAll('.flash-messages > div');
+                flashMessages.forEach(function(message) {
+                    message.style.opacity = '0';
+                    message.style.transition = 'opacity 0.5s';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                });
+            }, 5000);
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

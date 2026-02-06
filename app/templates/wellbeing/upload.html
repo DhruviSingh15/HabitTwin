@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Upload Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-xl text-white p-8">
+            <div class="flex flex-col items-center text-center">
+                <div class="text-indigo-100 mb-4">
+                    <i class="fas fa-upload text-5xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">Upload Screen Time Data</h1>
+                <p class="text-blue-100">Upload your screen time export to track and analyze your digital habits</p>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="bg-white rounded-b-xl shadow-lg p-8">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-6">
+                    <div class="flex flex-col items-center justify-center w-full">
+                        <label for="excel_file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-indigo-300 border-dashed rounded-lg cursor-pointer bg-indigo-50 hover:bg-indigo-100 transition">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i class="fas fa-file-excel text-indigo-500 text-4xl mb-3"></i>
+                                <p class="mb-2 text-sm text-indigo-600 font-semibold">Click to select Excel file</p>
+                                <p class="text-xs text-gray-500">Upload Excel (.xlsx) file with your screen time data</p>
+                            </div>
+                            {{ form.excel_file(class="hidden") }}
+                        </label>
+                        
+                        {% if form.excel_file.errors %}
+                            <div class="text-red-500 text-sm mt-2">
+                                {% for error in form.excel_file.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div id="file-name" class="mt-3 text-gray-700 hidden">
+                            Selected file: <span class="font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    {{ form.submit(class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition transform hover:-translate-y-1 shadow-md") }}
+                </div>
+            </form>
+
+            <!-- Instructions -->
+            <div class="mt-10 bg-indigo-50 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-indigo-800 mb-4">How to Export Your Screen Time Data</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold text-indigo-700 mb-2">For iOS Users:</h4>
+                        <ol class="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                            <li>Go to Settings > Screen Time</li>
+                            <li>Tap on "See All Activity"</li>
+                            <li>Tap on the share icon in the top right</li>
+                            <li>Save as Excel and upload the file here</li>
+                        </ol>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-indigo-700 mb-2">For Android Users:</h4>
+                        <ol class="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                            <li>Go to Settings > Digital Wellbeing</li>
+                            <li>Tap on "Dashboard"</li>
+                            <li>Tap the three dots in the top right</li>
+                            <li>Select "Export data" and save as Excel</li>
+                        </ol>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-indigo-700 mb-2">Required Excel Format:</h4>
+                        <p class="text-gray-700 mb-2">Your Excel file should have the following columns:</p>
+                        <ul class="list-disc list-inside text-gray-700 ml-4">
+                            <li>Date (YYYY-MM-DD format)</li>
+                            <li>App Name</li>
+                            <li>Usage (Minutes)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Display selected filename
+    document.getElementById('excel_file').addEventListener('change', function(e) {
+        const fileName = e.target.files[0].name;
+        const fileNameDisplay = document.getElementById('file-name');
+        fileNameDisplay.classList.remove('hidden');
+        fileNameDisplay.querySelector('span').textContent = fileName;
+    });
+</script>
+{% endblock %}

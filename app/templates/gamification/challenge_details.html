@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %} flex justify-between items-center">
+                    <div>
+                        {% if category == 'error' %}
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                        {% elif category == 'success' %}
+                            <i class="fas fa-check-circle mr-2"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle mr-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="max-w-4xl mx-auto">
+        <!-- Back button -->
+        <a href="{{ url_for('gamification.achievements') }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Achievements
+        </a>
+        
+        <!-- Challenge Header -->
+        <div class="bg-gradient-to-r rounded-t-lg p-6 text-white {% if challenge.color == 'indigo' %}from-indigo-500 to-indigo-600{% elif challenge.color == 'amber' %}from-amber-500 to-amber-600{% elif challenge.color == 'green' %}from-green-500 to-green-600{% elif challenge.color == 'blue' %}from-blue-500 to-blue-600{% elif challenge.color == 'cyan' %}from-cyan-500 to-cyan-600{% elif challenge.color == 'purple' %}from-purple-500 to-purple-600{% else %}from-gray-500 to-gray-600{% endif %}">
+            <div class="flex flex-wrap justify-between items-start gap-3">
+                <h1 class="text-2xl sm:text-3xl font-bold">{{ challenge.name }}</h1>
+                <div class="bg-white text-xs font-bold px-3 py-1 rounded {% if challenge.color == 'indigo' %}text-indigo-600{% elif challenge.color == 'amber' %}text-amber-600{% elif challenge.color == 'green' %}text-green-600{% elif challenge.color == 'blue' %}text-blue-600{% elif challenge.color == 'cyan' %}text-cyan-600{% elif challenge.color == 'purple' %}text-purple-600{% else %}text-gray-600{% endif %}">
+                    Ends in {{ (challenge.end_date - now).days }} days
+                </div>
+            </div>
+            <p class="mt-2 {% if challenge.color == 'indigo' %}text-indigo-100{% elif challenge.color == 'amber' %}text-amber-100{% elif challenge.color == 'green' %}text-green-100{% elif challenge.color == 'blue' %}text-blue-100{% elif challenge.color == 'cyan' %}text-cyan-100{% elif challenge.color == 'purple' %}text-purple-100{% else %}text-gray-100{% endif %}">{{ challenge.description }}</p>
+        </div>
+        
+        <!-- Challenge Content -->
+        <div class="bg-white rounded-b-lg shadow-md p-6">
+            <!-- Progress Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Your Progress</h2>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">Completion</span>
+                    <span class="text-sm font-medium {% if challenge.color == 'indigo' %}text-indigo-600{% elif challenge.color == 'amber' %}text-amber-600{% elif challenge.color == 'green' %}text-green-600{% elif challenge.color == 'blue' %}text-blue-600{% elif challenge.color == 'cyan' %}text-cyan-600{% elif challenge.color == 'purple' %}text-purple-600{% else %}text-gray-600{% endif %}">{{ challenge.progress }}/{{ challenge.total }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                    <div class="h-2.5 rounded-full {% if challenge.color == 'indigo' %}bg-indigo-600{% elif challenge.color == 'amber' %}bg-amber-600{% elif challenge.color == 'green' %}bg-green-600{% elif challenge.color == 'blue' %}bg-blue-600{% elif challenge.color == 'cyan' %}bg-cyan-600{% elif challenge.color == 'purple' %}bg-purple-600{% else %}bg-gray-600{% endif %}" style="width: {{ (challenge.progress / challenge.total) * 100 }}%"></div>
+                </div>
+                
+                <!-- Time remaining -->
+                <div class="bg-gray-100 rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                        <span class="block text-sm text-gray-500">Time Remaining</span>
+                        <span class="block text-lg font-semibold text-gray-800">{{ (challenge.end_date - now).days }} days</span>
+                    </div>
+                    <button id="updateProgressBtn" class="font-medium py-2 px-4 rounded transition-colors
+                        {% if challenge.color == 'indigo' %}
+                            bg-indigo-100 hover:bg-indigo-200 text-indigo-800
+                        {% elif challenge.color == 'amber' %}
+                            bg-amber-100 hover:bg-amber-200 text-amber-800
+                        {% elif challenge.color == 'green' %}
+                            bg-green-100 hover:bg-green-200 text-green-800
+                        {% elif challenge.color == 'blue' %}
+                            bg-blue-100 hover:bg-blue-200 text-blue-800
+                        {% elif challenge.color == 'cyan' %}
+                            bg-cyan-100 hover:bg-cyan-200 text-cyan-800
+                        {% elif challenge.color == 'purple' %}
+                            bg-purple-100 hover:bg-purple-200 text-purple-800
+                        {% else %}
+                            bg-gray-100 hover:bg-gray-200 text-gray-800
+                        {% endif %}">
+                        Update Progress
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Description Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">About This Challenge</h2>
+                <p class="text-gray-700 mb-4">{{ challenge.long_description }}</p>
+                
+                <div class="bg-{{ challenge.color }}-50 border border-{{ challenge.color }}-200 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+                        <h3 class="font-medium text-gray-800">Rewards</h3>
+                    </div>
+                    <ul class="pl-6 text-gray-700">
+                        <li class="mb-1">{{ challenge.reward_badge }}</li>
+                        <li>{{ challenge.reward_points }} points</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Tips Section -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Tips for Success</h2>
+                <ul class="space-y-2">
+                    {% for tip in challenge.tips %}
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-{{ challenge.color }}-500 mt-1 mr-2"></i>
+                        <span class="text-gray-700">{{ tip }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Update Modal -->
+    <div id="progressModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="{% if challenge.color == 'indigo' %}bg-indigo-500{% elif challenge.color == 'amber' %}bg-amber-500{% elif challenge.color == 'green' %}bg-green-500{% elif challenge.color == 'blue' %}bg-blue-500{% elif challenge.color == 'cyan' %}bg-cyan-500{% elif challenge.color == 'purple' %}bg-purple-500{% else %}bg-gray-500{% endif %} text-white rounded-t-lg px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Update Challenge Progress</h3>
+                <button id="closeModal" class="text-white hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="progressForm" action="{{ url_for('gamification.update_challenge_progress', challenge_id=challenge.id) }}" method="post">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="progress">
+                            Current Progress: {{ challenge.progress }}/{{ challenge.total }}
+                        </label>
+                        <input type="range" id="progress" name="progress" min="0" max="{{ challenge.total }}" value="{{ challenge.progress }}" 
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-gray-600 mt-1">
+                            <span>0</span>
+                            <span id="progressValue">{{ challenge.progress }}</span>
+                            <span>{{ challenge.total }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="notes">
+                            Notes (Optional)
+                        </label>
+                        <textarea id="notes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Add any notes about your progress..."></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" id="cancelUpdate" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-2">
+                            Cancel
+                        </button>
+                        <button type="submit" class="{% if challenge.color == 'indigo' %}bg-indigo-500 hover:bg-indigo-600{% elif challenge.color == 'amber' %}bg-amber-500 hover:bg-amber-600{% elif challenge.color == 'green' %}bg-green-500 hover:bg-green-600{% elif challenge.color == 'blue' %}bg-blue-500 hover:bg-blue-600{% elif challenge.color == 'cyan' %}bg-cyan-500 hover:bg-cyan-600{% elif challenge.color == 'purple' %}bg-purple-500 hover:bg-purple-600{% else %}bg-gray-500 hover:bg-gray-600{% endif %} text-white font-bold py-2 px-4 rounded">
+                            Save Progress
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Modal functionality
+        const progressModal = document.getElementById('progressModal');
+        const updateProgressBtn = document.getElementById('updateProgressBtn');
+        const closeModal = document.getElementById('closeModal');
+        const cancelUpdate = document.getElementById('cancelUpdate');
+        const progressInput = document.getElementById('progress');
+        const progressValue = document.getElementById('progressValue');
+        
+        // Show modal when Update Progress button is clicked
+        updateProgressBtn.addEventListener('click', () => {
+            progressModal.classList.remove('hidden');
+            progressModal.classList.add('flex');
+        });
+        
+        // Hide modal when close button or cancel is clicked
+        closeModal.addEventListener('click', closeProgressModal);
+        cancelUpdate.addEventListener('click', closeProgressModal);
+        
+        function closeProgressModal() {
+            progressModal.classList.add('hidden');
+            progressModal.classList.remove('flex');
+        }
+        
+        // Update displayed progress value when slider is moved
+        progressInput.addEventListener('input', () => {
+            progressValue.textContent = progressInput.value;
+        });
+        
+        // Close modal if user clicks outside of it
+        progressModal.addEventListener('click', (e) => {
+            if (e.target === progressModal) {
+                closeProgressModal();
+            }
+        });
+    </script>
+</div>
+{% endblock %}

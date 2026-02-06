@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Profile Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-xl text-white p-8">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="w-32 h-32 bg-white rounded-full overflow-hidden border-4 border-white shadow-lg mb-4 md:mb-0 md:mr-8">
+                    <img src="{{ url_for('static', filename='img/profile/' + current_user.profile_pic) }}" 
+                         alt="{{ current_user.username }}" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/default_profile.jpg') }}';">
+                </div>
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl font-bold mb-2">{{ current_user.username }}</h1>
+                    <p class="text-indigo-100 mb-2">
+                        {% if current_user.full_name %}{{ current_user.full_name }}{% else %}Complete your profile{% endif %}
+                    </p>
+                    <p class="text-indigo-200 text-sm">Member since {{ current_user.join_date.strftime('%B %d, %Y') }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Content -->
+        <div class="bg-white rounded-b-xl shadow-lg p-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Profile Information -->
+                <div class="md:col-span-2">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Profile Information</h2>
+                    
+                    <form method="POST" action="{{ url_for('main.profile') }}" enctype="multipart/form-data">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2" for="username">Username</label>
+                                <input type="text" id="username" name="username" value="{{ current_user.username }}" 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                       disabled>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2" for="email">Email</label>
+                                <input type="email" id="email" name="email" value="{{ current_user.email }}" 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                       disabled>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2" for="full_name">Full Name</label>
+                                <input type="text" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}" 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2" for="age">Age</label>
+                                <input type="number" id="age" name="age" value="{{ current_user.age or '' }}" 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2" for="hobbies">Hobbies & Interests</label>
+                            <input type="text" id="hobbies" name="hobbies" value="{{ current_user.hobbies or '' }}" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                   placeholder="e.g., Reading, Hiking, Photography">
+                            <p class="text-sm text-gray-500 mt-1">Separate multiple hobbies with commas</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2" for="bio">Bio</label>
+                            <textarea id="bio" name="bio" rows="4" 
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                      placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2" for="profile_pic">Profile Picture</label>
+                            <input type="file" id="profile_pic" name="profile_pic" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-sm text-gray-500 mt-1">Recommended size: 300x300 pixels</p>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button type="submit" 
+                                    class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition transform hover:-translate-y-1 shadow-md">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Digital Twin Status -->
+                <div class="bg-gradient-to-b from-indigo-50 to-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold text-indigo-800 mb-4">Your Digital Twin</h2>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-700">Twin Sync Status</span>
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">85% data synchronization</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-md font-semibold text-gray-700 mb-2">Twin Insights</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <span>Your twin suggests you're most productive in the morning</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <span>Screen time is 15% lower than last week</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <span>Your meditation habit is your most consistent</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <a href="#" class="block text-center bg-white text-indigo-600 border border-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition">
+                        View Twin Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

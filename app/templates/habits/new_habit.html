@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 text-white py-4 px-6">
+            <h2 class="text-2xl font-bold">Create New Habit</h2>
+            <p class="text-indigo-200">Start tracking a new habit to improve your wellbeing</p>
+        </div>
+        
+        <div class="p-6">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-4">
+                    {{ form.name.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    {{ form.description.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.description.errors %}
+                        {{ form.description(rows=3, class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(rows=3, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        {{ form.frequency.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                        {% if form.frequency.errors %}
+                            {{ form.frequency(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                            <div class="text-red-500 text-xs italic">
+                                {% for error in form.frequency.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.frequency(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        {{ form.category.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                        {% if form.category.errors %}
+                            {{ form.category(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                            <div class="text-red-500 text-xs italic">
+                                {% for error in form.category.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.category(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    {{ form.reminder_time.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.reminder_time.errors %}
+                        {{ form.reminder_time(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.reminder_time.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.reminder_time(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Optional. Set a daily reminder time for this habit.</p>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="flex items-center">
+                        {{ form.is_public(class="mr-2") }}
+                        <span class="text-sm text-gray-700">{{ form.is_public.label.text }}</span>
+                    </label>
+                    <p class="text-gray-500 text-xs mt-1">Public habits will be visible on leaderboards and can inspire others.</p>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    {{ form.submit(class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+                    <a href="{{ url_for('habits.view_habits') }}" class="text-indigo-600 hover:text-indigo-800">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

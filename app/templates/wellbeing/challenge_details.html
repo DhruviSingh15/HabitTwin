@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Challenge Header -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="bg-gradient-to-r 
+            {% if challenge.category == 'app' %}
+                from-blue-600 to-indigo-600
+            {% elif challenge.category == 'time' %}
+                from-green-600 to-teal-600
+            {% else %}
+                from-purple-600 to-indigo-600
+            {% endif %} text-white py-4 px-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">{{ challenge.name }}</h1>
+                    <p class="text-indigo-200">
+                        {% if challenge.is_active %}
+                            Day {{ challenge.current_day }} of {{ challenge.total_days }}
+                        {% else %}
+                            Completed on {{ challenge.end_date.strftime('%B %d, %Y') }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex space-x-2">
+                    {% if challenge.is_active %}
+                        <a href="{{ url_for('wellbeing.log_challenge', challenge_id=challenge.id) }}" 
+                           class="bg-white text-indigo-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-indigo-100">
+                            <i class="fas fa-check-circle mr-1"></i> Log Today
+                        </a>
+                        <button id="leaveChallengeBtn" 
+                                class="bg-transparent border border-white text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-20">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Leave Challenge
+                        </button>
+                    {% else %}
+                        <a href="{{ url_for('wellbeing.restart_challenge', challenge_id=challenge.id) }}" 
+                           class="bg-white text-indigo-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-indigo-100">
+                            <i class="fas fa-redo mr-1"></i> Restart Challenge
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <!-- Duration -->
+                <div class="bg-indigo-50 p-4 rounded-lg text-center">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Duration</p>
+                    <p class="text-xl font-bold text-indigo-600">{{ challenge.total_days }} days</p>
+                </div>
+                
+                <!-- Success Rate -->
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Success Rate</p>
+                    <p class="text-xl font-bold text-green-600">{{ challenge.success_rate }}%</p>
+                </div>
+                
+                <!-- Time Saved -->
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Time Saved</p>
+                    <p class="text-xl font-bold text-blue-600">
+                        {% if challenge.time_saved_hours > 0 %}
+                            {{ challenge.time_saved_hours }}h {{ challenge.time_saved_minutes }}m
+                        {% else %}
+                            {{ challenge.time_saved_minutes }}m
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Current Streak -->
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xl">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Current Streak</p>
+                    <p class="text-xl font-bold text-orange-600">{{ challenge.current_streak }} days</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Description</h2>
+                <p class="text-gray-600">{{ challenge.description }}</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800 mb-2">Details</h2>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Category</p>
+                                <p class="font-medium">
+                                    {% if challenge.category == 'app' %}
+                                        App Specific
+                                    {% elif challenge.category == 'time' %}
+                                        Time Based
+                                    {% else %}
+                                        Complete Detox
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Start Date</p>
+                                <p class="font-medium">{{ challenge.start_date.strftime('%b %d, %Y') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">End Date</p>
+                                <p class="font-medium">{{ challenge.end_date.strftime('%b %d, %Y') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Status</p>
+                                <p class="font-medium">
+                                    {% if challenge.is_active %}
+                                        <span class="text-green-600">Active</span>
+                                    {% else %}
+                                        <span class="text-gray-600">Completed</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% if challenge.target_app %}
+                                <div>
+                                    <p class="text-sm text-gray-500">Target App</p>
+                                    <p class="font-medium">{{ challenge.target_app }}</p>
+                                </div>
+                            {% endif %}
+                            {% if challenge.target_hours %}
+                                <div>
+                                    <p class="text-sm text-gray-500">Daily Target</p>
+                                    <p class="font-medium">{{ challenge.target_hours }}h {{ challenge.target_minutes }}m</p>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <p class="text-sm text-gray-500">Best Streak</p>
+                                <p class="font-medium">{{ challenge.best_streak }} days</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Last Logged</p>
+                                <p class="font-medium">
+                                    {% if challenge.last_logged %}
+                                        {{ challenge.last_logged.strftime('%b %d, %Y') }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800 mb-2">Progress Calendar</h2>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-7 gap-1">
+                            {% for day in calendar_days %}
+                                <div class="aspect-square rounded-lg flex items-center justify-center 
+                                    {% if day.status == 'success' %}
+                                        bg-green-100 text-green-600
+                                    {% elif day.status == 'failed' %}
+                                        bg-red-100 text-red-600
+                                    {% elif day.status == 'today' %}
+                                        bg-indigo-100 text-indigo-600 border-2 border-indigo-600
+                                    {% elif day.status == 'future' %}
+                                        bg-gray-100 text-gray-400
+                                    {% else %}
+                                        bg-gray-100 text-gray-600
+                                    {% endif %}">
+                                    <div class="text-center">
+                                        <div class="text-xs mb-1">{{ day.day_name }}</div>
+                                        <div class="font-bold">{{ day.day }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Challenge Logs -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-4 px-6">
+                <h2 class="text-xl font-bold">Daily Logs</h2>
+            </div>
+            <div class="p-6">
+                {% if logs %}
+                    <div class="space-y-4">
+                        {% for log in logs %}
+                            <div class="border-b pb-4 last:border-b-0 last:pb-0">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full 
+                                            {% if log.success %}
+                                                bg-green-100 text-green-600
+                                            {% else %}
+                                                bg-red-100 text-red-600
+                                            {% endif %} 
+                                            flex items-center justify-center mr-3">
+                                            {% if log.success %}
+                                                <i class="fas fa-check"></i>
+                                            {% else %}
+                                                <i class="fas fa-times"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">
+                                                {% if log.success %}
+                                                    Success
+                                                {% else %}
+                                                    Missed
+                                                {% endif %}
+                                            </p>
+                                            <p class="text-sm text-gray-500">{{ log.date.strftime('%B %d, %Y') }}</p>
+                                        </div>
+                                    </div>
+                                    {% if challenge.category == 'app' or challenge.category == 'time' %}
+                                        <div class="text-sm text-gray-600">
+                                            {% if log.minutes > 0 %}
+                                                {% if log.hours > 0 %}
+                                                    {{ log.hours }}h {{ log.minutes }}m
+                                                {% else %}
+                                                    {{ log.minutes }}m
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if log.notes %}
+                                    <div class="ml-11">
+                                        <p class="text-sm text-gray-600">{{ log.notes }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <p class="text-gray-600">No logs available for this challenge yet.</p>
+                        {% if challenge.is_active %}
+                            <a href="{{ url_for('wellbeing.log_challenge', challenge_id=challenge.id) }}" 
+                               class="inline-block mt-2 text-indigo-600 hover:text-indigo-800">
+                                Log your first day
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Challenge Analytics -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 text-white py-4 px-6">
+                <h2 class="text-xl font-bold">Analytics</h2>
+            </div>
+            <div class="p-6">
+                {% if analytics %}
+                    <!-- Success Rate Over Time -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Success Rate Over Time</h3>
+                        <div id="successRateChart" class="h-48"></div>
+                    </div>
+                    
+                    {% if challenge.category == 'app' or challenge.category == 'time' %}
+                        <!-- Screen Time Trend -->
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-3">Screen Time Trend</h3>
+                            <div id="screenTimeChart" class="h-48"></div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <p class="text-gray-600">Not enough data to show analytics yet.</p>
+                        <p class="text-sm text-gray-500 mt-2">Continue logging your challenge to see patterns and insights.</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Tips Section -->
+                <div class="mt-6 bg-blue-50 rounded-lg p-4">
+                    <h3 class="font-bold text-blue-800 mb-2">Tips for Success</h3>
+                    <ul class="space-y-2">
+                        {% if challenge.category == 'app' %}
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <span class="text-sm text-blue-700">Try using app blockers or screen time limits in your phone settings</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <span class="text-sm text-blue-700">Remove notifications from the target app to reduce temptation</span>
+                            </li>
+                        {% elif challenge.category == 'time' %}
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <span class="text-sm text-blue-700">Set a timer to remind you when your screen time limit is approaching</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <span class="text-sm text-blue-700">Plan alternative activities to do during your screen-free time</span>
+                            </li>
+                        {% else %}
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <span class="text-sm text-blue-700">Let friends and family know you'll be offline during your detox period</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <span class="text-sm text-blue-700">Keep devices in another room or use a timed lock box</span>
+                            </li>
+                        {% endif %}
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Track how you feel each day during the challenge to notice mental benefits</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave Challenge Confirmation Modal -->
+<div id="leaveModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Leave Challenge</h3>
+        <p class="text-gray-600 mb-6">Are you sure you want to leave this challenge? Your progress will be saved, but the challenge will be marked as incomplete.</p>
+        <div class="flex justify-end space-x-3">
+            <button id="cancelLeaveBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
+                Cancel
+            </button>
+            <form method="POST" action="{{ url_for('wellbeing.leave_challenge', challenge_id=challenge.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Leave Challenge
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if analytics %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Success Rate Chart
+        const successDates = {{ analytics.success_dates|tojson }};
+        const successRates = {{ analytics.success_rates|tojson }};
+        
+        const successRateData = [{
+            x: successDates,
+            y: successRates,
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: {
+                color: 'rgba(79, 70, 229, 1)'
+            },
+            line: {
+                color: 'rgba(79, 70, 229, 0.8)',
+                width: 3
+            }
+        }];
+        
+        const successRateLayout = {
+            margin: { t: 10, l: 40, r: 10, b: 40 },
+            yaxis: {
+                title: 'Success Rate %',
+                range: [0, 100]
+            },
+            xaxis: {
+                tickangle: -45
+            }
+        };
+        
+        Plotly.newPlot('successRateChart', successRateData, successRateLayout);
+        
+        {% if challenge.category == 'app' or challenge.category == 'time' %}
+            // Screen Time Chart
+            const screenTimeDates = {{ analytics.screen_time_dates|tojson }};
+            const screenTimeValues = {{ analytics.screen_time_values|tojson }};
+            
+            const screenTimeData = [{
+                x: screenTimeDates,
+                y: screenTimeValues,
+                type: 'bar',
+                marker: {
+                    color: 'rgba(79, 70, 229, 0.8)'
+                }
+            }];
+            
+            const screenTimeLayout = {
+                margin: { t: 10, l: 40, r: 10, b: 40 },
+                yaxis: {
+                    title: 'Minutes'
+                },
+                xaxis: {
+                    tickangle: -45
+                }
+            };
+            
+            Plotly.newPlot('screenTimeChart', screenTimeData, screenTimeLayout);
+        {% endif %}
+    });
+    
+    // Leave Modal Functionality
+    const leaveModal = document.getElementById('leaveModal');
+    const leaveChallengeBtn = document.getElementById('leaveChallengeBtn');
+    const cancelLeaveBtn = document.getElementById('cancelLeaveBtn');
+    
+    if (leaveChallengeBtn) {
+        leaveChallengeBtn.addEventListener('click', function() {
+            leaveModal.classList.remove('hidden');
+        });
+    }
+    
+    if (cancelLeaveBtn) {
+        cancelLeaveBtn.addEventListener('click', function() {
+            leaveModal.classList.add('hidden');
+        });
+    }
+    
+    // Close modal when clicking outside
+    if (leaveModal) {
+        leaveModal.addEventListener('click', function(e) {
+            if (e.target === leaveModal) {
+                leaveModal.classList.add('hidden');
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

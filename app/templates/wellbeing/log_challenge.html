@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r 
+            {% if challenge.category == 'app' %}
+                from-blue-600 to-indigo-600
+            {% elif challenge.category == 'time' %}
+                from-green-600 to-teal-600
+            {% else %}
+                from-purple-600 to-indigo-600
+            {% endif %} text-white py-4 px-6">
+            <h2 class="text-2xl font-bold">Log Challenge Progress</h2>
+            <p class="text-indigo-200">{{ challenge.name }} - Day {{ challenge.current_day }} of {{ challenge.total_days }}</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 rounded-full 
+                        {% if challenge.category == 'app' %}
+                            bg-blue-100 text-blue-600
+                        {% elif challenge.category == 'time' %}
+                            bg-green-100 text-green-600
+                        {% else %}
+                            bg-purple-100 text-purple-600
+                        {% endif %} flex items-center justify-center mr-3">
+                        <i class="fas 
+                            {% if challenge.category == 'app' %}
+                                fa-mobile-alt
+                            {% elif challenge.category == 'time' %}
+                                fa-clock
+                            {% else %}
+                                fa-power-off
+                            {% endif %}"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800">{{ challenge.description }}</p>
+                        {% if challenge.category == 'app' %}
+                            <p class="text-sm text-gray-600">Target: Reduce usage of {{ challenge.target_app }}</p>
+                        {% elif challenge.category == 'time' %}
+                            <p class="text-sm text-gray-600">Target: Limit screen time to {{ challenge.target_hours }}h {{ challenge.target_minutes }}m daily</p>
+                        {% else %}
+                            <p class="text-sm text-gray-600">Target: Complete digital detox for specified periods</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="bg-indigo-50 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-indigo-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-indigo-700">
+                                {% if challenge.category == 'app' %}
+                                    Record how much time you spent on {{ challenge.target_app }} today.
+                                {% elif challenge.category == 'time' %}
+                                    Record your total screen time for today.
+                                {% else %}
+                                    Record whether you successfully completed your digital detox period today.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                {% if challenge.category == 'app' or challenge.category == 'time' %}
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            {% if challenge.category == 'app' %}
+                                Time spent on {{ challenge.target_app }}
+                            {% else %}
+                                Total screen time today
+                            {% endif %}
+                        </label>
+                        <div class="flex space-x-4">
+                            <div class="w-1/2">
+                                {{ form.hours.label(class="block text-gray-700 text-sm mb-1") }}
+                                {% if form.hours.errors %}
+                                    {{ form.hours(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                                    <div class="text-red-500 text-xs italic">
+                                        {% for error in form.hours.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.hours(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                                {% endif %}
+                            </div>
+                            <div class="w-1/2">
+                                {{ form.minutes.label(class="block text-gray-700 text-sm mb-1") }}
+                                {% if form.minutes.errors %}
+                                    {{ form.minutes(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                                    <div class="text-red-500 text-xs italic">
+                                        {% for error in form.minutes.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.minutes(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if challenge.category == 'app' %}
+                            <div class="mt-4">
+                                <div class="flex justify-between mb-1 text-sm">
+                                    <span>Target: 0 minutes</span>
+                                    <span>Current: <span id="currentTime">0h 0m</span></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="progressBar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        {% elif challenge.category == 'time' %}
+                            <div class="mt-4">
+                                <div class="flex justify-between mb-1 text-sm">
+                                    <span>Target: {{ challenge.target_hours }}h {{ challenge.target_minutes }}m</span>
+                                    <span>Current: <span id="currentTime">0h 0m</span></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="progressBar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Did you complete your digital detox today?</label>
+                        <div class="flex space-x-4">
+                            <div class="flex items-center">
+                                {{ form.success(class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500", id="success-yes", value="yes") }}
+                                <label for="success-yes" class="ml-2 block text-gray-700">Yes, I completed it</label>
+                            </div>
+                            <div class="flex items-center">
+                                {{ form.success(class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500", id="success-no", value="no") }}
+                                <label for="success-no" class="ml-2 block text-gray-700">No, I didn't complete it</label>
+                            </div>
+                        </div>
+                        {% if form.success.errors %}
+                            <div class="text-red-500 text-xs italic mt-1">
+                                {% for error in form.success.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="mb-6">
+                    {{ form.notes.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.notes.errors %}
+                        {{ form.notes(rows=3, class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.notes.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.notes(rows=3, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", placeholder="Optional: Add any notes about today's challenge...") }}
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    {{ form.submit(class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+                    <a href="{{ url_for('wellbeing.challenge_details', challenge_id=challenge.id) }}" class="text-indigo-600 hover:text-indigo-800">Cancel</a>
+                </div>
+            </form>
+            
+            <!-- Previous Logs -->
+            {% if previous_logs %}
+                <div class="mt-8">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Previous Logs</h3>
+                    <div class="space-y-3">
+                        {% for log in previous_logs %}
+                            <div class="flex items-start border-b pb-3 last:border-b-0 last:pb-0">
+                                <div class="w-8 h-8 rounded-full 
+                                    {% if log.success %}
+                                        bg-green-100 text-green-600
+                                    {% else %}
+                                        bg-red-100 text-red-600
+                                    {% endif %} 
+                                    flex items-center justify-center mr-3">
+                                    {% if log.success %}
+                                        <i class="fas fa-check"></i>
+                                    {% else %}
+                                        <i class="fas fa-times"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <p class="font-medium">{{ log.date.strftime('%B %d, %Y') }}</p>
+                                        {% if challenge.category == 'app' or challenge.category == 'time' %}
+                                            <p class="text-sm text-gray-600 ml-3">
+                                                {% if log.hours > 0 or log.minutes > 0 %}
+                                                    {% if log.hours > 0 %}
+                                                        {{ log.hours }}h {{ log.minutes }}m
+                                                    {% else %}
+                                                        {{ log.minutes }}m
+                                                    {% endif %}
+                                                {% endif %}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    {% if log.notes %}
+                                        <p class="text-sm text-gray-600 mt-1">{{ log.notes }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Tips Section -->
+            <div class="mt-8 bg-blue-50 rounded-lg p-4">
+                <h3 class="font-bold text-blue-800 mb-2">Tips for Today</h3>
+                <ul class="space-y-2">
+                    {% if challenge.category == 'app' %}
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Try putting your phone in grayscale mode to make {{ challenge.target_app }} less appealing</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Set a timer for 5 minutes when you open the app to remind you to close it</span>
+                        </li>
+                    {% elif challenge.category == 'time' %}
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Keep a book or other non-screen activity nearby to reach for instead of your phone</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Use the "Do Not Disturb" mode on your devices to reduce temptation</span>
+                        </li>
+                    {% else %}
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Plan a specific outdoor activity during your detox time</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                            <span class="text-sm text-blue-700">Leave a note for yourself about how good you felt after your last successful detox day</span>
+                        </li>
+                    {% endif %}
+                    <li class="flex items-start">
+                        <i class="fas fa-lightbulb text-blue-600 mt-1 mr-2"></i>
+                        <span class="text-sm text-blue-700">Remember your "why" - what motivated you to start this challenge?</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if challenge.category == 'app' or challenge.category == 'time' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hoursInput = document.getElementById('{{ form.hours.id }}');
+        const minutesInput = document.getElementById('{{ form.minutes.id }}');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const progressBar = document.getElementById('progressBar');
+        
+        function updateDisplay() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            
+            // Update the display
+            currentTimeSpan.textContent = `${hours}h ${minutes}m`;
+            
+            // Calculate total minutes
+            const totalMinutes = (hours * 60) + minutes;
+            
+            {% if challenge.category == 'app' %}
+                // For app challenges, any usage is above target
+                const percentage = Math.min(100, totalMinutes > 0 ? 100 : 0);
+                progressBar.style.width = `${percentage}%`;
+                progressBar.className = totalMinutes > 0 ? 'bg-red-600 h-2.5 rounded-full' : 'bg-green-600 h-2.5 rounded-full';
+            {% else %}
+                // For time challenges, calculate percentage of target
+                const targetMinutes = {{ challenge.target_hours * 60 + challenge.target_minutes }};
+                const percentage = Math.min(100, (totalMinutes / targetMinutes) * 100);
+                progressBar.style.width = `${percentage}%`;
+                
+                // Change color based on whether over target
+                if (totalMinutes > targetMinutes) {
+                    progressBar.className = 'bg-red-600 h-2.5 rounded-full';
+                } else {
+                    progressBar.className = 'bg-green-600 h-2.5 rounded-full';
+                }
+            {% endif %}
+        }
+        
+        hoursInput.addEventListener('input', updateDisplay);
+        minutesInput.addEventListener('input', updateDisplay);
+        
+        // Initial update
+        updateDisplay();
+    });
+</script>
+{% endif %}
+{% endblock %}

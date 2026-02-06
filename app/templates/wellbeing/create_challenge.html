@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6">
+            <h2 class="text-2xl font-bold">Create Digital Detox Challenge</h2>
+            <p class="text-indigo-200">Set up a new challenge to improve your digital wellbeing</p>
+        </div>
+        
+        <div class="p-6">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-6">
+                    {{ form.name.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", placeholder="E.g., 'Social Media Break', 'Evening Phone Detox'") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    {{ form.description.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.description.errors %}
+                        {{ form.description(rows=3, class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(rows=3, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", placeholder="Describe your challenge and why you're doing it...") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    {{ form.category.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.category.errors %}
+                        {{ form.category(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.category.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.category(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", onchange="toggleChallengeOptions()") }}
+                    {% endif %}
+                    
+                    <div class="mt-2 text-sm text-gray-600">
+                        <div id="app-info" class="hidden">
+                            <p><i class="fas fa-info-circle mr-1"></i> Limit or eliminate usage of a specific app</p>
+                        </div>
+                        <div id="time-info" class="hidden">
+                            <p><i class="fas fa-info-circle mr-1"></i> Reduce overall screen time to a daily target</p>
+                        </div>
+                        <div id="detox-info" class="hidden">
+                            <p><i class="fas fa-info-circle mr-1"></i> Complete digital detox for specific periods (no screens)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- App-specific options -->
+                <div id="app-options" class="hidden mb-6">
+                    {{ form.target_app.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.target_app.errors %}
+                        {{ form.target_app(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.target_app.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.target_app(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                    
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-600">Your goal is to minimize or eliminate time spent on this app.</p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">Instagram</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">TikTok</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">Facebook</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">Twitter</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">YouTube</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">Reddit</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">Snapchat</button>
+                            <button type="button" class="app-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">Netflix</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Time-based options -->
+                <div id="time-options" class="hidden mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Daily Screen Time Target</label>
+                    <div class="flex space-x-4">
+                        <div class="w-1/2">
+                            {{ form.target_hours.label(class="block text-gray-700 text-sm mb-1") }}
+                            {% if form.target_hours.errors %}
+                                {{ form.target_hours(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                                <div class="text-red-500 text-xs italic">
+                                    {% for error in form.target_hours.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.target_hours(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                            {% endif %}
+                        </div>
+                        <div class="w-1/2">
+                            {{ form.target_minutes.label(class="block text-gray-700 text-sm mb-1") }}
+                            {% if form.target_minutes.errors %}
+                                {{ form.target_minutes(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                                <div class="text-red-500 text-xs italic">
+                                    {% for error in form.target_minutes.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.target_minutes(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-600">Recommended targets based on your current average screen time:</p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button type="button" class="time-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">2h 30m</button>
+                            <button type="button" class="time-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">3h 00m</button>
+                            <button type="button" class="time-suggestion px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-full text-gray-700">4h 00m</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Complete detox options -->
+                <div id="detox-options" class="hidden mb-6">
+                    <div class="bg-indigo-50 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-indigo-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-indigo-700">
+                                    Complete digital detox means no screens at all during specified periods each day.
+                                    You'll log whether you successfully stayed off all devices during these times.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        {{ form.detox_description.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                        {% if form.detox_description.errors %}
+                            {{ form.detox_description(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                            <div class="text-red-500 text-xs italic">
+                                {% for error in form.detox_description.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.detox_description(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", placeholder="E.g., 'No screens after 9pm', 'Screen-free Sundays'") }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    {{ form.duration.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.duration.errors %}
+                        {{ form.duration(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.duration.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.duration(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    {{ form.start_date.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.start_date.errors %}
+                        {{ form.start_date(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", type="date") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.start_date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.start_date(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", type="date") }}
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    {{ form.submit(class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+                    <a href="{{ url_for('wellbeing.digital_detox') }}" class="text-indigo-600 hover:text-indigo-800">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Challenge Tips -->
+    <div class="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 text-white py-3 px-6">
+            <h3 class="text-lg font-bold">Tips for Success</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-indigo-50 rounded-lg p-4">
+                    <h4 class="font-bold text-indigo-800 mb-2">Start Small</h4>
+                    <p class="text-sm text-indigo-700">Begin with achievable goals. A 7-day challenge is often more successful than jumping straight to 30 days.</p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                    <h4 class="font-bold text-green-800 mb-2">Track Daily</h4>
+                    <p class="text-sm text-green-700">Log your progress every day to stay accountable and see your improvement over time.</p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <h4 class="font-bold text-blue-800 mb-2">Replace, Don't Just Remove</h4>
+                    <p class="text-sm text-blue-700">Plan alternative activities to fill the time you'd normally spend on screens.</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4">
+                    <h4 class="font-bold text-purple-800 mb-2">Use Technology to Beat Technology</h4>
+                    <p class="text-sm text-purple-700">Try screen time limiters, app blockers, or put your phone in grayscale mode to reduce temptation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the form based on initial category selection
+        toggleChallengeOptions();
+        
+        // App suggestions
+        const appSuggestions = document.querySelectorAll('.app-suggestion');
+        const targetAppInput = document.getElementById('{{ form.target_app.id }}');
+        
+        appSuggestions.forEach(button => {
+            button.addEventListener('click', function() {
+                targetAppInput.value = this.textContent.trim();
+            });
+        });
+        
+        // Time suggestions
+        const timeSuggestions = document.querySelectorAll('.time-suggestion');
+        const hoursInput = document.getElementById('{{ form.target_hours.id }}');
+        const minutesInput = document.getElementById('{{ form.target_minutes.id }}');
+        
+        timeSuggestions.forEach(button => {
+            button.addEventListener('click', function() {
+                const timeText = this.textContent.trim();
+                const match = timeText.match(/(\d+)h\s+(\d+)m/);
+                
+                if (match) {
+                    hoursInput.value = match[1];
+                    minutesInput.value = match[2];
+                }
+            });
+        });
+    });
+    
+    function toggleChallengeOptions() {
+        const categorySelect = document.getElementById('{{ form.category.id }}');
+        const selectedValue = categorySelect.value;
+        
+        // Hide all options first
+        document.getElementById('app-options').classList.add('hidden');
+        document.getElementById('time-options').classList.add('hidden');
+        document.getElementById('detox-options').classList.add('hidden');
+        
+        document.getElementById('app-info').classList.add('hidden');
+        document.getElementById('time-info').classList.add('hidden');
+        document.getElementById('detox-info').classList.add('hidden');
+        
+        // Show relevant options based on selection
+        if (selectedValue === 'app') {
+            document.getElementById('app-options').classList.remove('hidden');
+            document.getElementById('app-info').classList.remove('hidden');
+        } else if (selectedValue === 'time') {
+            document.getElementById('time-options').classList.remove('hidden');
+            document.getElementById('time-info').classList.remove('hidden');
+        } else if (selectedValue === 'detox') {
+            document.getElementById('detox-options').classList.remove('hidden');
+            document.getElementById('detox-info').classList.remove('hidden');
+        }
+    }
+</script>
+{% endblock %}

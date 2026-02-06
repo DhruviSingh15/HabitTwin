@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 text-white py-4 px-6">
+            <h2 class="text-2xl font-bold">Reset Your Password</h2>
+            <p class="text-indigo-200">Enter your new password below</p>
+        </div>
+        
+        <div class="p-6">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-4">
+                    {{ form.password.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.password.errors %}
+                        {{ form.password(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-1 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.password(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    {{ form.confirm_password.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {% if form.confirm_password.errors %}
+                        {{ form.confirm_password(class="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-1 leading-tight focus:outline-none focus:shadow-outline") }}
+                        <div class="text-red-500 text-xs italic">
+                            {% for error in form.confirm_password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.confirm_password(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    {{ form.submit(class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+                    <a href="{{ url_for('auth.login') }}" class="inline-block align-baseline font-bold text-sm text-indigo-600 hover:text-indigo-800">
+                        Back to Login
+                    </a>
+                </div>
+            </form>
+            
+            <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            Create a strong password that:
+                        </p>
+                        <ul class="list-disc list-inside text-sm text-blue-700 mt-1">
+                            <li>Is at least 8 characters long</li>
+                            <li>Contains uppercase and lowercase letters</li>
+                            <li>Includes numbers and special characters</li>
+                            <li>Is not easily guessable</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
